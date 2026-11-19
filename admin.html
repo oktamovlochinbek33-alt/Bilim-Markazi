@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boshqaruv Markazi Pro — Bilim Markazi</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --pri:#2563EB;--acc:#10B981;--vio:#7C3AED;
+  --bg:#F8FAFC;--card:rgba(255,255,255,.94);--txt:#0F172A;--mut:#475569;--bdr:#CBD5E1;
+}
+html.dark{
+  --bg:#070D19;--card:rgba(15,23,42,.90);--txt:#E2E8F0;--mut:#94A3B8;--bdr:#334155;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(37,99,235,.14), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgba(16,185,129,.14), transparent 38%),
+    radial-gradient(circle at 50% 85%, rgba(124,58,237,.10), transparent 45%),
+    var(--bg);
+  color:var(--txt);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  line-height:1.5;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 56px}
+.grad-txt{background:linear-gradient(105deg,var(--pri),var(--vio),var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
+.badge-ico{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:900;background:linear-gradient(135deg,var(--pri),var(--vio));flex-shrink:0}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:20px;box-shadow:0 12px 28px -20px rgba(15,23,42,.35)}
+.card:hover{border-color:color-mix(in srgb,var(--pri) 50%,var(--bdr))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:13px;font-size:13px;font-weight:700;border:1px solid transparent;transition:.18s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:11px}
+.btn-grad{background:linear-gradient(135deg,var(--pri),var(--vio));color:#fff}
+.btn-mint{background:linear-gradient(135deg,var(--acc),#0D9488);color:#fff}
+.btn-glass{background:var(--card);border-color:var(--bdr)}
+.btn-danger{background:linear-gradient(135deg,#e11d48,#be123c);color:#fff}
+.inp{width:100%;margin-top:6px;padding:10px 12px;border-radius:14px;border:1px solid var(--bdr);background:var(--card);font-size:14px}
+.inp:focus{outline:2px solid color-mix(in srgb,var(--pri) 35%,transparent);border-color:var(--pri)}
+.lbl{display:block;color:var(--txt);font-size:13px;font-weight:700}
+.muted{color:var(--mut);font-size:13px}
+.tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:color-mix(in srgb,var(--pri) 14%,transparent);color:var(--pri)}
+.tag-acc{background:color-mix(in srgb,var(--acc) 16%,transparent);color:#059669}
+html.dark .tag-acc{color:#6EE7B7}
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:16px}
+.hdr{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand-box{display:flex;align-items:center;gap:12px}
+.grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:640px){.grid-2{grid-template-columns:repeat(2,1fr)}}
+.grid-3{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:768px){.grid-3{grid-template-columns:repeat(3,1fr)}}
+.grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:960px){.grid-4{grid-template-columns:repeat(4,1fr)}}
+.kpi-card{padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--bdr)}
+.kpi-val{font-size:26px;font-weight:900;margin:6px 0 0}
+.form-box{padding:16px;border-radius:18px;background:rgba(148,163,184,.08);border:1px solid var(--bdr);margin-bottom:18px}
+.quiz-builder{margin-top:14px;padding:14px;border-radius:16px;background:rgba(37,99,235,.06);border:1px dashed color-mix(in srgb,var(--pri) 45%,var(--bdr))}
+.quiz-card{padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--bdr);margin-top:10px}
+.row-item{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:16px;background:rgba(148,163,184,.09);border:1px solid color-mix(in srgb,var(--bdr) 75%,transparent);margin-top:10px}
+.row-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.msg-ok{font-size:12px;font-weight:700;color:var(--acc)}
+.msg-err{font-size:12px;font-weight:700;color:#e11d48}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:80;background:#0f172a;color:#fff;padding:11px 18px;border-radius:14px;font-size:13px;font-weight:700;transition:opacity .25s}
+code.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div id="authView" class="auth-wrap">
+  <div class="card" style="width:100%;max-width:450px">
+    <form id="authForm">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div class="brand-box">
+          <span class="badge-ico">B</span>
+          <div>
+            <div class="muted" style="font-size:11px;font-weight:800">BILIM MARKAZI PRO</div>
+            <h1 style="margin:0;font-size:22px;font-weight:900"><span class="grad-txt">Kabinetga kirish</span></h1>
+          </div>
+        </div>
+        <button id="themeBtnAuth" type="button" aria-label="Tungi va kunduzgi rejim" class="btn btn-glass">🌓</button>
+      </div>
+      <div style="margin-bottom:10px"><span id="modeBadge" class="tag">Mahalliy boshqaruv rejimi</span></div>
+      <p id="modeHint" class="muted" style="margin:0 0 14px">Test konstruktori, JSON import/eksport, validatsiya va amallar jurnali faol. Supabase ulangach bulut baza ishlaydi.</p>
+      <label class="lbl" style="margin-bottom:10px">Email<input id="email" type="email" class="inp" placeholder="admin@bilim.uz"></label>
+      <label class="lbl" style="margin-bottom:12px">Parol<input id="password" type="password" class="inp" placeholder="••••••••"></label>
+      <p id="authErr" class="msg-err" style="margin:0 0 10px"></p>
+      <button type="submit" class="btn btn-grad" style="width:100%">Kabinetga kirish</button>
+    </form>
+    <details style="margin-top:16px;padding:14px;border-radius:16px;background:rgba(148,163,184,.1);border:1px solid var(--bdr)">
+      <summary style="font-weight:700;font-size:13px;cursor:pointer">Supabase ulanish sozlamalari</summary>
+      <div style="margin-top:10px">
+        <label class="lbl" style="margin-bottom:8px">Project URL<input id="cfgUrl" class="inp" placeholder="https://xxxx.supabase.co"></label>
+        <label class="lbl" style="margin-bottom:10px">Anon Key<input id="cfgKey" class="inp" placeholder="eyJ..."></label>
+        <button type="button" onclick="saveSupabaseConfig()" class="btn btn-mint">Saqlash va yangilash</button>
+      </div>
+    </details>
+    <div style="text-align:center;margin-top:14px"><a href="index.html" class="btn btn-glass" style="width:100%">← Oʻquvchi oynasiga qaytish</a></div>
+  </div>
+</div>
+
+<div id="dashView" class="hidden wrap">
+  <header class="card hdr">
+    <div class="brand-box">
+      <span class="badge-ico">B</span>
+      <div>
+        <div id="userTitle" style="font-weight:900;font-size:17px"></div>
+        <div id="userRoleBadge" class="tag" style="margin-top:4px"></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" onclick="refreshAll()" class="btn btn-glass">↻ Yangilash</button>
+      <a href="index.html" class="btn btn-glass">Saytni koʻrish</a>
+      <button id="themeBtnDash" type="button" aria-label="Tungi va kunduzgi rejim" class="btn btn-glass">🌓</button>
+      <button type="button" onclick="signOut()" class="btn btn-danger">Chiqish</button>
+    </div>
+  </header>
+  <div id="kpiGrid" class="grid-4" style="margin-bottom:16px"></div>
+  <div id="navTabs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+  <section id="workspace" class="card"></section>
+</div>
+<div id="toast" class="toast" style="opacity:0;pointer-events:none"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const uid = p => (p || "id") + "_" + Math.random().toString(36).slice(2, 8);
+const nowStr = () => new Date().toLocaleString("uz-UZ", { hour12:false });
+
+function toast(msg){
+  const e = $("toast");
+  if(!e) return;
+  e.textContent = msg; e.style.opacity = "1";
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { e.style.opacity = "0"; }, 2700);
+}
+
+const SUPABASE_URL = localStorage.getItem("sb_url") || "";
+const SUPABASE_ANON_KEY = localStorage.getItem("sb_key") || "";
+const db = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && typeof window.supabase.createClient === "function")
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+$("cfgUrl").value = SUPABASE_URL;
+$("cfgKey").value = SUPABASE_ANON_KEY;
+if(db){ $("modeBadge").textContent = "Supabase ulangan"; $("modeHint").textContent = "Supabase Auth akkauntingiz (email va parol) bilan kiring."; }
+
+function saveSupabaseConfig(){
+  localStorage.setItem("sb_url", $("cfgUrl").value.trim());
+  localStorage.setItem("sb_key", $("cfgKey").value.trim());
+  toast("Sozlamalar saqlandi");
+  setTimeout(() => location.reload(), 400);
+}
+
+const LOCAL_KEY = "bilim_admin_store_v1";
+const DEFAULT_LOCAL = {
+  subjects: [
+    { id:"s1", name:"Informatika", slug:"informatika", icon:"💻", description:"Algoritm, kompyuter tuzilishi va dasturlash." },
+    { id:"s2", name:"Matematika", slug:"matematika", icon:"📐", description:"Algebra, geometriya va mantiqiy masalalar." }
+  ],
+  lessons: [
+    { id:"l1", subject_id:"s1", lesson_type:"video", title:"Kompyuter arxitekturasi asoslari", level:"7–8-sinf", duration_min:15, video_url:"",
+      content:["Protsessor, operativ xotira va saqlash qurilmalari oʻzaro bogʻliq ishlaydi."],
+      homework:"4 ta asosiy vazifani misollar bilan yozing.",
+      quiz:[{ q:"RAM nima vazifani bajaradi?", opts:["Doimiy arxiv","Vaqtinchalik tezkor xotira","Printer drayveri","Tarmoq kabeli"], ans:1, tip:"RAM ishlayotgan dasturlar maʼlumotini vaqtinchalik saqlaydi." }],
+      is_published:true, created_at:"2026-01-02T00:00:00Z" }
+  ],
+  schedules: [{ id:"sc1", group_name:"INF-1", subject_id:"s1", days_text:"Du – Cho – Ju", time_text:"15:00 – 16:30" }],
+  announcements: [{ id:"a1", title:"Yangi guruhlarga qabul boshlandi", category:"Muhim", body:"Dars jadvali boʻlimidan vaqtni tanlang.", pinned:true, created_at:"2026-01-02T00:00:00Z" }],
+  homework: [{ id:"hw1", student_id:"u1", lesson_id:"l1", answer_text:"CPU, RAM, ROM va I/O qurilmalari haqida javob.", status:"tekshirildi", score:95, teacher_feedback:"Yaxshi bajarilgan." }],
+  enrollments: [{ id:"en1", full_name:"Azizbek Rustamov", contact:"+998901234567", subject_id:"s1", level_text:"8-sinf", note:"Kechki guruh maʼqul", status:"yangi" }],
+  profiles: [{ id:"u1", full_name:"Lochinbek Oʻktamov", role:"teacher", bio:"Informatika ustozi", contact:"https://t.me/username" }],
+  logs: [{ id:"lg1", time:nowStr(), actor:"Tizim", action:"Boshqaruv markazi Pro ishga tushirildi" }]
+};
+
+function loadLocalStore(){
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if(!raw){ localStorage.setItem(LOCAL_KEY, JSON.stringify(DEFAULT_LOCAL)); return JSON.parse(JSON.stringify(DEFAULT_LOCAL)); }
+    return { ...JSON.parse(JSON.stringify(DEFAULT_LOCAL)), ...JSON.parse(raw) };
+  } catch (_) { return JSON.parse(JSON.stringify(DEFAULT_LOCAL)); }
+}
+function saveLocalStore(){ try { localStorage.setItem(LOCAL_KEY, JSON.stringify(cache)); } catch (_) {} }
+function addAuditLog(action){
+  if(!Array.isArray(cache.logs)) cache.logs = [];
+  cache.logs.unshift({ id:uid("lg"), time:nowStr(), actor:profile.full_name || "Admin", action });
+  cache.logs = cache.logs.slice(0, 120);
+  saveLocalStore();
+}
+let profile = { id:null, full_name:"Boshqaruvchi Admin", role:"admin" };
+let activeTab = "lessons", searchQuery = "", draftQuiz = [];
+let editState = { lessonId:null, subjectId:null, scheduleId:null, announcementId:null, enrollmentId:null, profileId:null };
+let cache = { subjects:[], lessons:[], schedules:[], announcements:[], homework:[], enrollments:[], profiles:[], logs:[] };
+
+const subjNameById = id => (cache.subjects.find(s => String(s.id) === String(id)) || {}).name || "Fan";
+const lessonTitleById = id => (cache.lessons.find(l => String(l.id) === String(id)) || {}).title || "Dars";
+const studentNameById = id => (cache.profiles.find(p => String(p.id) === String(id)) || {}).full_name || "Oʻquvchi";
+
+async function loadProfileForUser(user){
+  if(!db || !user) return;
+  const { data: p, error } = await db.from("profiles").select("*").eq("id", user.id).single();
+  if(error){ $("authErr").textContent = error.message; return; }
+  profile = p || { id:user.id, full_name:user.email, role:"student" };
+  await enterWorkspace();
+}
+if(db){
+  db.auth.onAuthStateChange(async (event, session) => {
+    if(session?.user) await loadProfileForUser(session.user);
+    else { $("dashView").classList.add("hidden"); $("authView").classList.remove("hidden"); }
+  });
+}
+$("authForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("authErr").textContent = "";
+  if(!db){ profile = { id:null, full_name: $("email").value.trim() || "Boshqaruvchi Admin", role:"admin" }; await enterWorkspace(); toast("Boshqaruv markazi ochildi"); return; }
+  const { error } = await db.auth.signInWithPassword({ email:$("email").value.trim(), password:$("password").value });
+  if(error) $("authErr").textContent = error.message;
+});
+async function signOut(){ if(db) await db.auth.signOut(); $("dashView").classList.add("hidden"); $("authView").classList.remove("hidden"); toast("Kabinetdan chiqildi"); }
+async function enterWorkspace(){
+  $("authView").classList.add("hidden"); $("dashView").classList.remove("hidden");
+  $("userTitle").textContent = profile.full_name;
+  $("userRoleBadge").textContent = "ROL: " + String(profile.role || "admin").toUpperCase() + (db ? " · SUPABASE" : " · MAHALLIY BAZA");
+  await refreshAll();
+}
+async function refreshAll(){
+  const localSnap = loadLocalStore();
+  if(db){
+    try {
+      const [s, l, sc, a, hw, en, pr] = await Promise.all([
+        db.from("subjects").select("*").order("sort_order", { ascending:true }),
+        db.from("lessons").select("*").order("created_at", { ascending:false }).limit(100),
+        db.from("schedules").select("*").order("created_at", { ascending:false }),
+        db.from("announcements").select("*").order("pinned", { ascending:false }).order("created_at", { ascending:false }).limit(50),
+        db.from("homework_submissions").select("*").order("submitted_at", { ascending:false }).limit(100),
+        db.from("enrollments").select("*").order("created_at", { ascending:false }).limit(100),
+        db.from("profiles").select("id,full_name,role,bio,contact").limit(100)
+      ]);
+      cache.subjects = s.data || []; cache.lessons = l.data || []; cache.schedules = sc.data || [];
+      cache.announcements = a.data || []; cache.homework = hw.data || []; cache.enrollments = en.data || []; cache.profiles = pr.data || [];
+      cache.logs = localSnap.logs || [];
+    } catch (_) { cache = localSnap; }
+  } else { cache = localSnap; }
+  renderKpi(); renderTabs(); renderWorkspace();
+}
+function renderKpi(){
+  const newEnr = cache.enrollments.filter(x => x.status === "yangi").length;
+  const quizTotal = cache.lessons.reduce((sum, l) => sum + (Array.isArray(l.quiz) ? l.quiz.length : 0), 0);
+  const items = [["Fanlar", cache.subjects.length, "var(--pri)"], ["Darslar", cache.lessons.length, "var(--acc)"], ["Test savollari", quizTotal, "var(--vio)"], ["Yangi arizalar", newEnr, "#d97706"]];
+  $("kpiGrid").innerHTML = items.map(([label, val, col]) => `<div class="kpi-card"><div class="muted" style="font-weight:700">${esc(label)}</div><div class="kpi-val" style="color:${col}">${val}</div></div>`).join("");
+}
+function renderTabs(){
+  const tabs = [["lessons","Darslar & Test"], ["subjects","Fanlar"], ["schedules","Jadval"], ["announcements","Eʼlonlar"], ["homework","Uy vazifalari"], ["enrollments","Arizalar"], ["users","Ustozlar & Rollar"], ["tools","JSON & Jurnal"]];
+  $("navTabs").innerHTML = tabs.map(([k, n]) => `<button type="button" onclick="activeTab='${k}';searchQuery='';renderTabs();renderWorkspace()" class="btn ${activeTab===k?'btn-grad':'btn-glass'}">${n}</button>`).join("");
+}
+function beginEditLesson(id){
+  const l = cache.lessons.find(x => String(x.id) === String(id));
+  editState.lessonId = l ? l.id : null;
+  draftQuiz = Array.isArray(l?.quiz) ? JSON.parse(JSON.stringify(l.quiz)) : [];
+  renderWorkspace();
+}
+function addQuizQuestionToDraft(){
+  const q = $("qText").value.trim(), opts = [0,1,2,3].map(i => $("qOpt"+i).value.trim()), ans = Number($("qAns").value), tip = $("qTip").value.trim();
+  if(!q || opts.some(o => !o)){ $("qErr").textContent = "Savol va 4 ta variantni toʻldiring."; return; }
+  $("qErr").textContent = ""; draftQuiz.push({ q, opts, ans, tip }); renderWorkspace(); toast("Savol qoʻshildi");
+}
+function removeDraftQuiz(idx){ draftQuiz.splice(idx, 1); renderWorkspace(); }
+function isValidUrlOrEmpty(v){ if(!v) return true; try { const u = new URL(v); return u.protocol === "http:" || u.protocol === "https:"; } catch (_) { return false; } }
+
+function renderWorkspace(){
+  const w = $("workspace"), subs = cache.subjects.length ? cache.subjects : [{ id:"s1", name:"Informatika" }], q = searchQuery.trim().toLowerCase();
+  if(activeTab === "lessons"){
+    const ed = editState.lessonId ? cache.lessons.find(x => String(x.id) === String(editState.lessonId)) : null;
+    if(ed && !draftQuiz.length && Array.isArray(ed.quiz) && ed.quiz.length) draftQuiz = JSON.parse(JSON.stringify(ed.quiz));
+    const list = q ? cache.lessons.filter(l => (l.title||"").toLowerCase().includes(q) || (l.level||"").toLowerCase().includes(q)) : cache.lessons;
+    w.innerHTML = `<div class="form-box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px"><h2 style="margin:0;font-size:18px;font-weight:800">${ed ? "Dars va testni tahrirlash" : "Yangi dars qoʻshish"}</h2>${ed ? `<button type="button" onclick="editState.lessonId=null;draftQuiz=[];renderWorkspace()" class="btn btn-sm btn-glass">Bekor qilish</button>` : ''}</div>
+      <div class="grid-3">
+        <label class="lbl">Fan<select id="lSub" class="inp">${subs.map(s=>`<option value="${esc(s.id)}" ${ed&&String(ed.subject_id)===String(s.id)?'selected':''}>${esc(s.name)}</option>`).join("")}</select></label>
+        <label class="lbl">Sinf / daraja<input id="lLevel" class="inp" value="${esc(ed?.level||'7–8-sinf')}"></label>
+        <label class="lbl">Turi<select id="lType" class="inp">${["video","pdf","test","interaktiv"].map(t=>`<option value="${t}" ${ed?.lesson_type===t?'selected':''}>${t}</option>`).join("")}</select></label>
+        <label class="lbl" style="grid-column:span 2">Dars nomi *<input id="lTitle" class="inp" value="${esc(ed?.title||'')}"></label>
+        <label class="lbl">Davomiyligi (daq)<input id="lMin" type="number" min="1" max="300" class="inp" value="${esc(ed?.duration_min||15)}"></label>
+        <label class="lbl" style="grid-column:1/-1">Video havola<input id="lVid" class="inp" value="${esc(ed?.video_url||'')}" placeholder="https://youtu.be/..."></label>
+        <label class="lbl" style="grid-column:1/-1">Dars matni<textarea id="lBody" rows="3" class="inp">${esc(Array.isArray(ed?.content)?ed.content.join("\n"):'')}</textarea></label>
+        <label class="lbl" style="grid-column:1/-1">Uy vazifasi<textarea id="lHw" rows="2" class="inp">${esc(ed?.homework||'')}</textarea></label>
+      </div>
+      <div class="quiz-builder"><div style="font-weight:800;font-size:14px;margin-bottom:8px">🧪 Test konstruktori (${draftQuiz.length} ta savol)</div>
+        <div class="grid-2">
+          <label class="lbl" style="grid-column:1/-1">Savol matni<input id="qText" class="inp"></label>
+          <label class="lbl">Variant A (0)<input id="qOpt0" class="inp"></label><label class="lbl">Variant B (1)<input id="qOpt1" class="inp"></label>
+          <label class="lbl">Variant C (2)<input id="qOpt2" class="inp"></label><label class="lbl">Variant D (3)<input id="qOpt3" class="inp"></label>
+          <label class="lbl">Toʻgʻri javob<select id="qAns" class="inp"><option value="0">A (0)</option><option value="1">B (1)</option><option value="2">C (2)</option><option value="3">D (3)</option></select></label>
+          <label class="lbl">Tushuntirish (tip)<input id="qTip" class="inp"></label>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px"><button type="button" onclick="addQuizQuestionToDraft()" class="btn btn-sm btn-grad">+ Savol qoʻshish</button><span id="qErr" class="msg-err"></span></div>
+        ${draftQuiz.map((item, idx) => `<div class="quiz-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${idx+1}. ${esc(item.q)}</b><button type="button" onclick="removeDraftQuiz(${idx})" class="btn btn-sm btn-danger">Oʻchirish</button></div><div class="muted" style="margin-top:4px">Variantlar: ${(item.opts||[]).map(esc).join(" | ")} · Toʻgʻri: <b>#${Number(item.ans)+1}</b></div></div>`).join("")}
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:14px"><button type="button" onclick="saveLesson()" class="btn btn-mint">${ed ? "Oʻzgarishni saqlash" : "Darsni saqlash"}</button><span id="lMsg" class="msg-ok"></span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0;font-size:16px;font-weight:800">Darslar roʻyxati (${list.length})</h3><input class="inp" style="max-width:260px;margin-top:0" value="${esc(searchQuery)}" placeholder="Qidirish..." oninput="searchQuery=this.value;renderWorkspace()"></div>
+    ${list.map(l => `<div class="row-item"><div><div style="font-weight:700">${esc(l.title)} <span class="tag">${esc(subjNameById(l.subject_id))}</span> ${(Array.isArray(l.quiz)&&l.quiz.length)?`<span class="tag-acc tag">${l.quiz.length} test</span>`:''}</div><div class="muted">${esc(l.level||'')} · ${l.duration_min||15} daq · ${esc(l.lesson_type||'dars')}</div></div><div class="row-actions"><button type="button" onclick="beginEditLesson('${esc(l.id)}')" class="btn btn-sm btn-grad">Tahrirlash</button><button type="button" onclick="deleteItem('lessons','${esc(l.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div></div>`).join("") || `<p class="muted">Darslar topilmadi.</p>`}`;
+  } else if(activeTab === "subjects"){
+    const ed = editState.subjectId ? cache.subjects.find(x => String(x.id) === String(editState.subjectId)) : null;
+    const list = q ? cache.subjects.filter(s => (s.name||"").toLowerCase().includes(q)) : cache.subjects;
+    w.innerHTML = `<div class="form-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:18px;font-weight:800">${ed ? "Fanni tahrirlash" : "Yangi fan qoʻshish"}</h2>${ed ? `<button type="button" onclick="editState.subjectId=null;renderWorkspace()" class="btn btn-sm btn-glass">Bekor qilish</button>` : ''}</div>
+      <div class="grid-3"><label class="lbl">Fan nomi *<input id="sName" class="inp" value="${esc(ed?.name||'')}"></label><label class="lbl">Belgi<input id="sIcon" class="inp" value="${esc(ed?.icon||'📘')}"></label><label class="lbl">Tavsif<input id="sDesc" class="inp" value="${esc(ed?.description||'')}"></label></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px"><button type="button" onclick="saveSubject()" class="btn btn-mint">${ed ? "Oʻzgarishni saqlash" : "Fan qoʻshish"}</button><span id="sMsg" class="msg-ok"></span></div></div>
+      <h3 style="margin:0;font-size:16px;font-weight:800">Fanlar (${list.length})</h3>
+      ${list.map(s => `<div class="row-item"><div><div style="font-weight:700">${esc(s.icon||'📘')} ${esc(s.name)}</div><div class="muted">${esc(s.description||'')}</div></div><div class="row-actions"><button type="button" onclick="editState.subjectId='${esc(s.id)}';renderWorkspace()" class="btn btn-sm btn-grad">Tahrirlash</button><button type="button" onclick="deleteItem('subjects','${esc(s.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div></div>`).join("") || `<p class="muted">Fanlar yoʻq.</p>`}`;
+  } else if(activeTab === "schedules"){
+    const ed = editState.scheduleId ? cache.schedules.find(x => String(x.id) === String(editState.scheduleId)) : null;
+    w.innerHTML = `<div class="form-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:18px;font-weight:800">${ed ? "Jadvalni tahrirlash" : "Yangi guruh jadvali qoʻshish"}</h2>${ed ? `<button type="button" onclick="editState.scheduleId=null;renderWorkspace()" class="btn btn-sm btn-glass">Bekor qilish</button>` : ''}</div>
+      <div class="grid-2"><label class="lbl">Guruh nomi *<input id="gName" class="inp" value="${esc(ed?.group_name||'')}"></label><label class="lbl">Fan<select id="gSub" class="inp">${subs.map(s=>`<option value="${esc(s.id)}" ${ed&&String(ed.subject_id)===String(s.id)?'selected':''}>${esc(s.name)}</option>`).join("")}</select></label><label class="lbl">Kunlar *<input id="gDays" class="inp" value="${esc(ed?.days_text||'Du – Cho – Ju')}"></label><label class="lbl">Vaqt *<input id="gTime" class="inp" value="${esc(ed?.time_text||'15:00 – 16:30')}"></label></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px"><button type="button" onclick="saveSchedule()" class="btn btn-mint">${ed ? "Oʻzgarishni saqlash" : "Jadvalga qoʻshish"}</button><span id="gMsg" class="msg-ok"></span></div></div>
+      <h3 style="margin:0;font-size:16px;font-weight:800">Guruhlar jadvali (${cache.schedules.length})</h3>
+      ${cache.schedules.map(g => `<div class="row-item"><div><div style="font-weight:700">${esc(g.group_name)} <span class="tag">${esc(subjNameById(g.subject_id))}</span></div><div class="muted">${esc(g.days_text)} · ${esc(g.time_text)}</div></div><div class="row-actions"><button type="button" onclick="editState.scheduleId='${esc(g.id)}';renderWorkspace()" class="btn btn-sm btn-grad">Tahrirlash</button><button type="button" onclick="deleteItem('schedules','${esc(g.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div></div>`).join("") || `<p class="muted">Jadval boʻsh.</p>`}`;
+  } else if(activeTab === "announcements"){
+    const ed = editState.announcementId ? cache.announcements.find(x => String(x.id) === String(editState.announcementId)) : null;
+    w.innerHTML = `<div class="form-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:18px;font-weight:800">${ed ? "Eʼlonni tahrirlash" : "Yangi eʼlon qoʻshish"}</h2>${ed ? `<button type="button" onclick="editState.announcementId=null;renderWorkspace()" class="btn btn-sm btn-glass">Bekor qilish</button>` : ''}</div>
+      <div class="grid-2"><label class="lbl">Sarlavha *<input id="aTitle" class="inp" value="${esc(ed?.title||'')}"></label><label class="lbl">Toifa<input id="aCat" class="inp" value="${esc(ed?.category||'Muhim')}"></label><label class="lbl" style="grid-column:1/-1">Matn *<textarea id="aBody" rows="2" class="inp">${esc(ed?.body||'')}</textarea></label><label class="lbl" style="display:flex;align-items:center;gap:8px"><input id="aPin" type="checkbox" ${ed?.pinned?'checked':''}> Yuqoriga qadash</label></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px"><button type="button" onclick="saveAnnouncement()" class="btn btn-mint">${ed ? "Oʻzgarishni saqlash" : "Eʼlon joylash"}</button><span id="aMsg" class="msg-ok"></span></div></div>
+      <h3 style="margin:0;font-size:16px;font-weight:800">Eʼlonlar (${cache.announcements.length})</h3>
+      ${cache.announcements.map(a => `<div class="row-item"><div><div style="font-weight:700">${a.pinned?'📌 ':''}${esc(a.title)} <span class="tag">${esc(a.category||'Eʼlon')}</span></div><div class="muted">${esc(a.body)}</div></div><div class="row-actions"><button type="button" onclick="editState.announcementId='${esc(a.id)}';renderWorkspace()" class="btn btn-sm btn-grad">Tahrirlash</button><button type="button" onclick="deleteItem('announcements','${esc(a.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div></div>`).join("") || `<p class="muted">Eʼlonlar yoʻq.</p>`}`;
+  } else if(activeTab === "homework"){
+    w.innerHTML = `<h2 style="margin:0 0 12px;font-size:18px;font-weight:800">Uy vazifalari (${cache.homework.length})</h2>` + (cache.homework.map(h => `
+      <div class="row-item" style="display:block">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px;font-weight:700"><span style="color:var(--pri)">Oʻquvchi: ${esc(studentNameById(h.student_id))} · Dars: ${esc(lessonTitleById(h.lesson_id))}</span><span class="tag-acc tag">Holat: ${esc(h.status||'kutilmoqda')} · Ball: ${h.score ?? "—"}</span></div>
+        <p style="margin:8px 0">${esc(h.answer_text)}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><input id="fb_${esc(h.id)}" class="inp" style="flex:1;min-width:180px;margin-top:0" value="${esc(h.teacher_feedback||'')}" placeholder="Ustoz izohi..."><input id="sc_${esc(h.id)}" type="number" min="0" max="100" class="inp" style="width:84px;margin-top:0" value="${esc(h.score ?? 100)}"><button type="button" onclick="saveHomeworkGrade('${esc(h.id)}')" class="btn btn-sm btn-mint">Saqlash / Baholash</button><button type="button" onclick="deleteItem('homework','${esc(h.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div>
+      </div>`).join("") || `<p class="muted">Hozircha uy vazifalari yoʻq.</p>`);
+  } else if(activeTab === "enrollments"){
+    const ed = editState.enrollmentId ? cache.enrollments.find(x => String(x.id) === String(editState.enrollmentId)) : null;
+    w.innerHTML = `<div class="form-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:18px;font-weight:800">${ed ? "Arizani tahrirlash" : "Yangi ariza qoʻshish"}</h2>${ed ? `<button type="button" onclick="editState.enrollmentId=null;renderWorkspace()" class="btn btn-sm btn-glass">Bekor qilish</button>` : ''}</div>
+      <div class="grid-3"><label class="lbl">Ism-familiya *<input id="eName" class="inp" value="${esc(ed?.full_name||'')}"></label><label class="lbl">Aloqa *<input id="eContact" class="inp" value="${esc(ed?.contact||'')}"></label><label class="lbl">Holat<select id="eStatus" class="inp">${["yangi","boglanildi","qabul_qilindi"].map(st=>`<option value="${st}" ${ed?.status===st?'selected':''}>${st}</option>`).join("")}</select></label><label class="lbl">Sinf / daraja<input id="eLevel" class="inp" value="${esc(ed?.level_text||'')}"></label><label class="lbl" style="grid-column:span 2">Izoh<input id="eNote" class="inp" value="${esc(ed?.note||'')}"></label></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px"><button type="button" onclick="saveEnrollment()" class="btn btn-mint">${ed ? "Oʻzgarishni saqlash" : "Ariza qoʻshish"}</button><span id="eMsg" class="msg-ok"></span></div></div>
+      <h3 style="margin:0;font-size:16px;font-weight:800">Arizalar (${cache.enrollments.length})</h3>
+      ${cache.enrollments.map(r => `<div class="row-item"><div><div style="font-weight:700">${esc(r.full_name)} · <span style="color:var(--pri)">${esc(r.contact)}</span> <span class="tag">${esc(r.status||'yangi')}</span></div><div class="muted">${esc(r.level_text||'')} ${r.note ? '— ' + esc(r.note) : ''}</div></div><div class="row-actions"><button type="button" onclick="editState.enrollmentId='${esc(r.id)}';renderWorkspace()" class="btn btn-sm btn-grad">Tahrirlash</button><button type="button" onclick="deleteItem('enrollments','${esc(r.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div></div>`).join("") || `<p class="muted">Arizalar yoʻq.</p>`}`;
+  } else if(activeTab === "users"){
+    const ed = editState.profileId ? cache.profiles.find(x => String(x.id) === String(editState.profileId)) : null;
+    w.innerHTML = `<div class="form-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:18px;font-weight:800">${ed ? "Profilni tahrirlash" : "Yangi ustoz / profil qoʻshish"}</h2>${ed ? `<button type="button" onclick="editState.profileId=null;renderWorkspace()" class="btn btn-sm btn-glass">Bekor qilish</button>` : ''}</div>
+      <div class="grid-3"><label class="lbl">Ism-familiya *<input id="pName" class="inp" value="${esc(ed?.full_name||'')}"></label><label class="lbl">Rol<select id="pRole" class="inp">${["teacher","admin","student"].map(rl=>`<option value="${rl}" ${ed?.role===rl?'selected':''}>${rl}</option>`).join("")}</select></label><label class="lbl">Aloqa / havola<input id="pContact" class="inp" value="${esc(ed?.contact||'')}"></label><label class="lbl" style="grid-column:1/-1">Tavsif / bio<input id="pBio" class="inp" value="${esc(ed?.bio||'')}"></label></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px"><button type="button" onclick="saveProfileItem()" class="btn btn-mint">${ed ? "Oʻzgarishni saqlash" : "Qoʻshish"}</button><span id="pMsg" class="msg-ok"></span></div></div>
+      <h3 style="margin:0;font-size:16px;font-weight:800">Ustozlar va foydalanuvchilar (${cache.profiles.length})</h3>
+      ${cache.profiles.map(p => `<div class="row-item"><div><div style="font-weight:700">${esc(p.full_name)} <span class="tag">${esc(p.role||'student')}</span></div><div class="muted">${esc(p.bio||'')} ${p.contact ? '· ' + esc(p.contact) : ''}</div></div><div class="row-actions"><button type="button" onclick="editState.profileId='${esc(p.id)}';renderWorkspace()" class="btn btn-sm btn-grad">Tahrirlash</button><button type="button" onclick="deleteItem('profiles','${esc(p.id)}')" class="btn btn-sm btn-danger">Oʻchirish</button></div></div>`).join("") || `<p class="muted">Profillar yoʻq.</p>`}`;
+  } else if(activeTab === "tools"){
+    const sampleJson = JSON.stringify({
+      lessons: [{ title:"Algoritmlar va oqim sxemalari", subject_id:"s1", level:"7–8-sinf", lesson_type:"video", duration_min:15, content:["Ketma-ket, tarmoqlanuvchi va takrorlanuvchi algoritmlar."], homework:"3 ta algoritm sxemasini chizing." }],
+      announcements: [{ title:"Olimpiadaga roʻyxatdan oʻtish ochildi", category:"Yangilik", body:"Barcha fanlardan sinov bosqichi oʻtkaziladi.", pinned:false }]
+    }, null, 2);
+    w.innerHTML = `<div class="grid-2">
+      <div class="form-box" style="margin-bottom:0"><h2 style="margin:0 0 8px;font-size:18px;font-weight:800">📦 JSON tezkor import & eksport</h2><p class="muted" style="margin:0 0 10px">Strukturalangan JSON orqali dars, fan, jadval yoki eʼlonlarni tezkor qoʻshing yoki zaxirani koʻchiring.</p><textarea id="jsonArea" rows="9" class="inp mono">${esc(sampleJson)}</textarea><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button type="button" onclick="importJsonData()" class="btn btn-sm btn-mint">JSON import qilish</button><button type="button" onclick="exportAllJson()" class="btn btn-sm btn-grad">Barcha bazani JSON qilish</button><button type="button" onclick="copyJsonArea()" class="btn btn-sm btn-glass">Nusxalash</button></div><div id="jMsg" class="msg-ok" style="margin-top:8px"></div></div>
+      <div class="form-box" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><h2 style="margin:0;font-size:18px;font-weight:800">🕒 Amallar jurnali (${(cache.logs||[]).length})</h2><button type="button" onclick="clearAuditLogs()" class="btn btn-sm btn-danger">Tozalash</button></div>${(cache.logs||[]).slice(0, 12).map(lg => `<div class="row-item" style="padding:10px 12px"><div><div style="font-weight:700;font-size:13px">${esc(lg.action)}</div><div class="muted">${esc(lg.actor)} · ${esc(lg.time)}</div></div></div>`).join("") || `<p class="muted">Jurnal boʻsh.</p>`}</div>
+    </div>`;
+  }
+}
+
+async function persistUpsert(table, row, isEdit){
+  if(db){
+    const res = isEdit ? await db.from(table).update(row).eq("id", row.id) : await db.from(table).insert(row);
+    if(res.error) return res.error.message;
+    await refreshAll(); return null;
+  }
+  const list = cache[table];
+  if(isEdit){ const idx = list.findIndex(x => String(x.id) === String(row.id)); if(idx !== -1) list[idx] = { ...list[idx], ...row }; }
+  else list.unshift(row);
+  saveLocalStore(); renderKpi(); renderWorkspace(); return null;
+}
+
+async function saveLesson(){
+  const title = $("lTitle").value.trim(), vid = $("lVid").value.trim();
+  if(!title){ $("lMsg").className="msg-err"; $("lMsg").textContent = "Dars nomini kiriting."; return; }
+  if(!isValidUrlOrEmpty(vid)){ $("lMsg").className="msg-err"; $("lMsg").textContent = "Video havola http:// yoki https:// bilan boshlansin."; return; }
+  const isEdit = Boolean(editState.lessonId);
+  const row = { id: isEdit ? editState.lessonId : uid("l"), subject_id: $("lSub").value || null, lesson_type: $("lType").value, title, level: $("lLevel").value.trim(), duration_min: Math.max(1, Number($("lMin").value) || 15), video_url: vid, content: $("lBody").value.split("\n").map(s=>s.trim()).filter(Boolean), homework: $("lHw").value.trim(), quiz: JSON.parse(JSON.stringify(draftQuiz)), is_published: true };
+  if(!isEdit) row.created_at = new Date().toISOString();
+  if(db && !isEdit) row.teacher_id = profile.id;
+  const err = await persistUpsert("lessons", row, isEdit);
+  $("lMsg").className = err ? "msg-err" : "msg-ok";
+  $("lMsg").textContent = err ? "Xato: " + err : (isEdit ? "Dars yangilandi ✓" : "Dars qoʻshildi ✓");
+  if(!err){ addAuditLog((isEdit ? "Dars tahrirlandi: " : "Yangi dars qoʻshildi: ") + title); editState.lessonId = null; draftQuiz = []; toast(isEdit ? "Dars yangilandi" : "Dars qoʻshildi"); }
+}
+
+async function saveSubject(){
+  const name = $("sName").value.trim();
+  if(!name){ $("sMsg").className="msg-err"; $("sMsg").textContent = "Fan nomini kiriting."; return; }
+  const isEdit = Boolean(editState.subjectId);
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"") || ("fan-"+Date.now());
+  const row = { id: isEdit ? editState.subjectId : uid("s"), name, slug, icon: $("sIcon").value.trim() || "📘", description: $("sDesc").value.trim() };
+  const err = await persistUpsert("subjects", row, isEdit);
+  $("sMsg").className = err ? "msg-err" : "msg-ok";
+  $("sMsg").textContent = err ? "Xato: " + err : (isEdit ? "Fan yangilandi ✓" : "Fan qoʻshildi ✓");
+  if(!err){ addAuditLog((isEdit ? "Fan tahrirlandi: " : "Yangi fan qoʻshildi: ") + name); editState.subjectId = null; toast(isEdit ? "Fan yangilandi" : "Fan qoʻshildi"); }
+}
+
+async function saveSchedule(){
+  const group_name = $("gName").value.trim(), days_text = $("gDays").value.trim(), time_text = $("gTime").value.trim();
+  if(!group_name || !days_text || !time_text){ $("gMsg").className="msg-err"; $("gMsg").textContent = "Guruh nomi, kunlar va vaqtni toʻldiring."; return; }
+  const isEdit = Boolean(editState.scheduleId);
+  const row = { id: isEdit ? editState.scheduleId : uid("sc"), group_name, subject_id: $("gSub").value || null, days_text, time_text };
+  if(db && !isEdit) row.teacher_id = profile.id;
+  const err = await persistUpsert("schedules", row, isEdit);
+  $("gMsg").className = err ? "msg-err" : "msg-ok";
+  $("gMsg").textContent = err ? "Xato: " + err : (isEdit ? "Jadval yangilandi ✓" : "Jadvalga qoʻshildi ✓");
+  if(!err){ addAuditLog((isEdit ? "Jadval tahrirlandi: " : "Jadvalga guruh qoʻshildi: ") + group_name); editState.scheduleId = null; toast(isEdit ? "Jadval yangilandi" : "Jadvalga qoʻshildi"); }
+}
+
+async function saveAnnouncement(){
+  const title = $("aTitle").value.trim(), body = $("aBody").value.trim();
+  if(!title || !body){ $("aMsg").className="msg-err"; $("aMsg").textContent = "Sarlavha va matnni kiriting."; return; }
+  const isEdit = Boolean(editState.announcementId);
+  const row = { id: isEdit ? editState.announcementId : uid("a"), title, body, category: $("aCat").value.trim() || "Muhim", pinned: $("aPin").checked };
+  if(!isEdit) row.created_at = new Date().toISOString();
+  const err = await persistUpsert("announcements", row, isEdit);
+  $("aMsg").className = err ? "msg-err" : "msg-ok";
+  $("aMsg").textContent = err ? "Xato: " + err : (isEdit ? "Eʼlon yangilandi ✓" : "Eʼlon joylandi ✓");
+  if(!err){ addAuditLog((isEdit ? "Eʼlon tahrirlandi: " : "Yangi eʼlon joylandi: ") + title); editState.announcementId = null; toast(isEdit ? "Eʼlon yangilandi" : "Eʼlon joylandi"); }
+}
+
+async function saveHomeworkGrade(id){
+  const score = Math.max(0, Math.min(100, Number($("sc_"+id).value) || 0));
+  const err = await persistUpsert("homework", { id, teacher_feedback: $("fb_"+id).value.trim(), score, status: "tekshirildi" }, true);
+  if(err) alert("Xato: " + err); else { addAuditLog(`Uy vazifasi baholandi (${score} ball)`); toast("Uy vazifasi saqlandi"); }
+}
+
+async function saveEnrollment(){
+  const full_name = $("eName").value.trim(), contact = $("eContact").value.trim();
+  if(!full_name || !contact){ $("eMsg").className="msg-err"; $("eMsg").textContent = "Ism va aloqa maʼlumotini kiriting."; return; }
+  const isEdit = Boolean(editState.enrollmentId);
+  const row = { id: isEdit ? editState.enrollmentId : uid("en"), full_name, contact, status: $("eStatus").value, level_text: $("eLevel").value.trim(), note: $("eNote").value.trim() };
+  const err = await persistUpsert("enrollments", row, isEdit);
+  $("eMsg").className = err ? "msg-err" : "msg-ok";
+  $("eMsg").textContent = err ? "Xato: " + err : (isEdit ? "Ariza yangilandi ✓" : "Ariza qoʻshildi ✓");
+  if(!err){ addAuditLog((isEdit ? "Ariza tahrirlandi: " : "Yangi ariza qoʻshildi: ") + full_name); editState.enrollmentId = null; toast(isEdit ? "Ariza yangilandi" : "Ariza qoʻshildi"); }
+}
+
+async function saveProfileItem(){
+  const full_name = $("pName").value.trim();
+  if(!full_name){ $("pMsg").className="msg-err"; $("pMsg").textContent = "Ism-familiyani kiriting."; return; }
+  const isEdit = Boolean(editState.profileId);
+  const row = { id: isEdit ? editState.profileId : uid("u"), full_name, role: $("pRole").value, contact: $("pContact").value.trim(), bio: $("pBio").value.trim() };
+  const err = await persistUpsert("profiles", row, isEdit);
+  $("pMsg").className = err ? "msg-err" : "msg-ok";
+  $("pMsg").textContent = err ? "Xato: " + err : (isEdit ? "Profil yangilandi ✓" : "Profil qoʻshildi ✓");
+  if(!err){ addAuditLog((isEdit ? "Profil tahrirlandi: " : "Yangi profil qoʻshildi: ") + full_name); editState.profileId = null; toast(isEdit ? "Profil yangilandi" : "Profil qoʻshildi"); }
+}
+
+async function deleteItem(table, id){
+  const warn = table === "subjects" ? "Diqqat: fan oʻchirilsa, unga bogʻliq dars/jadval fan nomi 'Fan' boʻlib qoladi. Davom etasizmi?" : "Ushbu yozuvni oʻchirishni tasdiqlaysizmi?";
+  if(!confirm(warn)) return;
+  if(db){
+    const dbTable = table === "homework" ? "homework_submissions" : table;
+    const { error } = await db.from(dbTable).delete().eq("id", id);
+    if(error){ alert("Xato: " + error.message); return; }
+    await refreshAll();
+  } else { cache[table] = cache[table].filter(x => String(x.id) !== String(id)); saveLocalStore(); renderKpi(); renderWorkspace(); }
+  addAuditLog(`Yozuv oʻchirildi (${table} #${id})`); toast("Yozuv oʻchirildi");
+}
+
+async function importJsonData(){
+  try {
+    const parsed = JSON.parse($("jsonArea").value);
+    let addedCount = 0;
+    for(const tbl of ["subjects","lessons","schedules","announcements","enrollments","profiles"]){
+      const arr = Array.isArray(parsed[tbl]) ? parsed[tbl] : [];
+      for(const item of arr){
+        const row = { ...item, id: item.id || uid(tbl.slice(0,2)) };
+        if(tbl === "lessons" && !row.created_at) row.created_at = new Date().toISOString();
+        if(tbl === "lessons" && row.is_published === undefined) row.is_published = true;
+        const err = await persistUpsert(tbl, row, false);
+        if(!err) addedCount++;
+      }
+    }
+    $("jMsg").className = "msg-ok"; $("jMsg").textContent = `${addedCount} ta yozuv muvaffaqiyatli qoʻshildi ✓`;
+    addAuditLog(`JSON orqali ${addedCount} ta yozuv import qilindi`); toast(`${addedCount} ta yozuv import qilindi`);
+  } catch (e) { $("jMsg").className = "msg-err"; $("jMsg").textContent = "JSON formatida xato: " + e.message; }
+}
+
+function exportAllJson(){
+  const { logs, ...dataOnly } = cache;
+  $("jsonArea").value = JSON.stringify(dataOnly, null, 2);
+  $("jMsg").className = "msg-ok"; $("jMsg").textContent = "Barcha maʼlumotlar JSON koʻrinishida tayyorlandi ✓"; toast("JSON zaxira tayyorlandi");
+}
+function copyJsonArea(){ navigator.clipboard?.writeText($("jsonArea").value).catch(() => {}); toast("JSON nusxalandi"); }
+function clearAuditLogs(){ cache.logs = []; saveLocalStore(); renderWorkspace(); toast("Jurnal tozalandi"); }
+
+let th = localStorage.getItem("th") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+document.documentElement.classList.toggle("dark", th === "dark");
+function toggleTheme(){ const d = document.documentElement.classList.toggle("dark"); localStorage.setItem("th", d ? "dark" : "light"); }
+$("themeBtnAuth").onclick = toggleTheme;
+$("themeBtnDash").onclick = toggleTheme;
+</script>
+</body>
+</html>

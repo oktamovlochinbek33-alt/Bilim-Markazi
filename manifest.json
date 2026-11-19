@@ -1,0 +1,16 @@
+{
+  "name": "Bilim Markazi — Kreativ Ta'lim Studiyasi",
+  "short_name": "Bilim Markazi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#070D19",
+  "theme_color": "#2563EB",
+  "description": "Fanlar, interaktiv darslar, testlar, uy vazifalari va dars jadvali platformasi.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%232563EB'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='64' fill='white'%3EB%3C/text%3E%3C/svg%3E",
+      "sizes": "128x128",
+      "type": "image/svg+xml"
+    }
+  ]
+}

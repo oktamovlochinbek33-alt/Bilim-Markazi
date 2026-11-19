@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bilim Markazi — Kreativ raqamli taʼlim studiyasi</title>
+<meta name="description" content="Koʻp oynali oʻquv studiyasi: fanlar, interaktiv darslar, testlar, uy vazifalari, guruh jadvali va sertifikat.">
+<meta name="theme-color" content="#2563EB">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --pri:#2563EB;--acc:#10B981;--vio:#7C3AED;
+  --bg:#F8FAFC;--card:rgba(255,255,255,.92);--txt:#0F172A;--mut:#475569;--bdr:#CBD5E1;
+}
+html.dark{
+  --bg:#070D19;--card:rgba(15,23,42,.88);--txt:#E2E8F0;--mut:#94A3B8;--bdr:#334155;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(37,99,235,.14), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgba(16,185,129,.14), transparent 38%),
+    radial-gradient(circle at 50% 85%, rgba(124,58,237,.10), transparent 45%),
+    var(--bg);
+  color:var(--txt);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  line-height:1.5;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr)}
+.hdr-in{display:flex;align-items:center;gap:10px;min-height:64px;flex-wrap:wrap}
+.logo{display:inline-flex;align-items:center;gap:10px;font-weight:900;font-size:18px}
+.badge-ico{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:900;background:linear-gradient(135deg,var(--pri),var(--vio));flex-shrink:0}
+.nav-links{display:none;gap:4px}
+@media(min-width:1024px){.nav-links{display:flex}}
+.nav-links a{padding:8px 12px;border-radius:12px;font-size:13px;font-weight:600;color:var(--mut)}
+.nav-links a:hover{background:rgba(148,163,184,.15);color:var(--txt)}
+.spacer{flex:1}
+.search-box{position:relative;flex:1 1 180px;max-width:260px}
+.search-box input{width:100%;padding:8px 12px;border-radius:12px;border:1px solid var(--bdr);background:var(--card);font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:13px;font-size:13px;font-weight:700;border:1px solid transparent;transition:.18s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-grad{background:linear-gradient(135deg,var(--pri),var(--vio));color:#fff}
+.btn-mint{background:linear-gradient(135deg,var(--acc),#0D9488);color:#fff}
+.btn-glass{background:var(--card);border-color:var(--bdr)}
+
+/* Hero & Cards */
+.hero{display:grid;grid-template-columns:1fr;gap:24px;padding:32px 0 24px;align-items:center}
+@media(min-width:900px){.hero{grid-template-columns:1.15fr .85fr;padding:44px 0 32px}}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;background:var(--card);border:1px solid var(--bdr)}
+.hero h1{margin:12px 0 10px;font-size:clamp(28px,4.5vw,46px);line-height:1.12;font-weight:900}
+.grad-txt{background:linear-gradient(105deg,var(--pri),var(--vio),var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{margin:0;color:var(--mut);font-size:15px}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:20px;box-shadow:0 12px 28px -20px rgba(15,23,42,.35)}
+.card:hover{border-color:color-mix(in srgb,var(--pri) 55%,var(--bdr))}
+
+/* Mini studio */
+.tabs-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.tabs-group{display:flex;flex-wrap:wrap;gap:6px}
+.status-chip{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(16,185,129,.15);color:#059669}
+html.dark .status-chip{color:#6EE7B7}
+.prog-wrap{margin:14px 0;height:12px;border-radius:999px;background:rgba(148,163,184,.22);overflow:hidden;padding:2px}
+.prog-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--pri),var(--vio),var(--acc));transition:width .4s ease}
+.grid-3{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.grid-3{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:960px){.grid-3{grid-template-columns:repeat(3,1fr)}}
+.grid-4{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:640px){.grid-4{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.grid-4{grid-template-columns:repeat(4,1fr)}}
+.grid-2{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:768px){.grid-2{grid-template-columns:repeat(2,1fr)}}
+.kpi-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.kpi-box{padding:12px;border-radius:16px;background:rgba(148,163,184,.12)}
+.kpi-val{font-size:20px;font-weight:900;margin:0}
+.kpi-lbl{font-size:11px;color:var(--mut);margin:2px 0 0}
+
+/* Sections & Inputs */
+.sec{padding:32px 0}
+.sec-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px}
+.sec-title-wrap{display:flex;align-items:center;gap:12px}
+.sec-title{margin:0;font-size:24px;font-weight:800}
+.sec-sub{margin:2px 0 0;font-size:13px;color:var(--mut)}
+.filters{display:grid;grid-template-columns:1fr;gap:8px;width:100%}
+@media(min-width:640px){.filters{grid-template-columns:repeat(3,minmax(150px,1fr));width:auto}}
+.inp{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--bdr);background:var(--card);font-size:14px}
+.inp:focus{outline:2px solid color-mix(in srgb,var(--pri) 35%,transparent);border-color:var(--pri)}
+.tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(37,99,235,.12);color:var(--pri)}
+.muted{color:var(--mut);font-size:13px}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}
+
+/* Modals & Drawer */
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(2,6,23,.72);backdrop-filter:blur(4px);overflow-y:auto;padding:16px}
+.modal-box{position:relative;max-width:780px;margin:24px auto;background:var(--bg);border:1px solid var(--bdr);border-radius:26px;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.drawer-wrap{position:fixed;inset:0;z-index:60;background:rgba(2,6,23,.65);display:flex;justify-content:flex-end}
+.drawer-panel{width:100%;max-width:400px;height:100%;background:var(--bg);border-left:1px solid var(--bdr);padding:22px;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.close-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:999px;border:1px solid var(--bdr);background:var(--card);font-weight:800}
+.video-box{aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#0f172a;color:#cbd5e1;display:grid;place-items:center;margin:14px 0}
+.hw-box{margin:14px 0;padding:14px;border-radius:18px;border:1px solid #f59e0b;background:rgba(245,158,11,.10)}
+.quiz-box{margin:14px 0;padding:14px;border-radius:18px;border:1px solid var(--bdr);background:rgba(148,163,184,.08)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:80;background:#0f172a;color:#fff;padding:11px 18px;border-radius:14px;font-size:13px;font-weight:700;transition:opacity .25s}
+
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff!important;color:#000!important}
+  .overlay{position:static!important;background:none!important;padding:0!important}
+  .modal-box{box-shadow:none!important;max-width:100%!important;margin:0!important}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr no-print">
+  <div class="wrap hdr-in">
+    <a href="#bosh" class="logo" aria-label="Bosh sahifa">
+      <span class="badge-ico">B</span>
+      <span class="grad-txt">Bilim Markazi</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Asosiy menyu">
+      <a href="#fanlar">Fanlar</a>
+      <a href="#darsliklar">Darsliklar</a>
+      <a href="#jadval">Jadval</a>
+      <a href="#ustozlar">Ustozlar</a>
+      <a href="#yozilish">Yozilish</a>
+    </nav>
+
+    <div class="spacer"></div>
+
+    <div class="search-box">
+      <input id="qInput" type="search" aria-label="Dars qidirish" placeholder="Mavzu, dars izlash...">
+    </div>
+
+    <button type="button" onclick="openWorkspaceDrawer()" class="btn btn-glass">Oynalar</button>
+    <button id="installBtn" type="button" class="btn btn-mint hidden">Ilova</button>
+    <a href="admin.html" class="btn btn-grad">Kabinet</a>
+    <button id="themeBtn" type="button" aria-label="Tungi va kunduzgi rejim" class="btn btn-glass">🌓</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="bosh" class="hero">
+    <div>
+      <span class="pill">⚡ Koʻp oynali raqamli oʻquv studiyasi</span>
+      <h1><span class="grad-txt">Bilim Studiyasi</span> — har bir dars qoʻlda</h1>
+      <p class="lead">Darsliklar, testlar, uy vazifalari, guruh jadvali va natija sertifikatini alohida oynalar hamda tezkor panellar orqali boshqaring.</p>
+      <div class="btn-row">
+        <a href="#darsliklar" class="btn btn-grad">▶ Darslarni boshlash</a>
+        <button type="button" onclick="openCertificateModal()" class="btn btn-glass">🏅 Sertifikat oynasi</button>
+        <button type="button" onclick="openWorkspaceDrawer()" class="btn btn-glass">❐ Yon panel</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tabs-bar">
+        <div class="tabs-group" role="tablist">
+          <button type="button" id="wTabProgress" role="tab" onclick="switchMiniTab('progress')" class="btn btn-grad">Progress</button>
+          <button type="button" id="wTabNotes" role="tab" onclick="switchMiniTab('notes')" class="btn btn-glass">Dars daftari</button>
+          <button type="button" id="wTabFocus" role="tab" onclick="switchMiniTab('focus')" class="btn btn-glass">Fokus taymer</button>
+        </div>
+        <span id="syncStatusBadge" class="status-chip">● Mahalliy rejim</span>
+      </div>
+
+      <div id="miniPanelProgress">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+          <div>
+            <div class="muted">Umumiy oʻzlashtirish (<span id="statPct">0%</span>)</div>
+            <div id="statText" style="font-size:24px;font-weight:900">0 / 0 dars</div>
+          </div>
+          <div class="badge-ico" style="background:linear-gradient(135deg,#10B981,#059669)">★</div>
+        </div>
+        <div class="prog-wrap"><div id="statBar" class="prog-fill"></div></div>
+        <div class="kpi-3">
+          <div class="kpi-box"><p id="cntSubjects" class="kpi-val">0</p><p class="kpi-lbl">Fanlar</p></div>
+          <div class="kpi-box"><p id="cntLessons" class="kpi-val" style="color:var(--pri)">0</p><p class="kpi-lbl">Darslar</p></div>
+          <div class="kpi-box"><p id="cntDone" class="kpi-val" style="color:var(--acc)">0</p><p class="kpi-lbl">Tugatilgan</p></div>
+        </div>
+      </div>
+
+      <div id="miniPanelNotes" class="hidden" style="margin-top:14px">
+        <p class="muted" style="margin-top:0">Dars davomida muhim formulalar va fikrlarni yozib boring:</p>
+        <textarea id="quickNoteArea" rows="4" class="inp" placeholder="Masalan: Bugungi mavzudagi asosiy qoidalar..." oninput="localStorage.setItem('quick_study_note',this.value)"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px" class="muted">
+          <span>Avtomatik saqlanadi</span>
+          <button type="button" onclick="$('quickNoteArea').value='';localStorage.removeItem('quick_study_note');toast('Daftar tozalandi')" style="border:0;background:none;color:#e11d48;font-weight:700">Tozalash</button>
+        </div>
+      </div>
+
+      <div id="miniPanelFocus" class="hidden" style="text-align:center;padding:16px 0">
+        <p class="muted" style="margin-top:0">Diqqat bilan dars tayyorlash taymeri</p>
+        <div id="focusClock" style="font-size:38px;font-weight:900;color:var(--pri);margin:8px 0">25:00</div>
+        <div class="btn-row" style="justify-content:center">
+          <button type="button" onclick="startFocus()" class="btn btn-mint">Boshlash</button>
+          <button type="button" onclick="pauseFocus()" class="btn btn-glass">Toʻxtatish</button>
+          <button type="button" onclick="resetFocus()" class="btn btn-glass">Qayta</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fanlar" class="sec">
+    <div class="sec-head">
+      <div class="sec-title-wrap">
+        <div class="badge-ico" style="background:linear-gradient(135deg,#2563EB,#4F46E5)">❖</div>
+        <div>
+          <h2 class="sec-title">Fanlar yoʻnalishlari</h2>
+          <p class="sec-sub">Kerakli fanni tanlang — darslar shu fan boʻyicha saralanadi.</p>
+        </div>
+      </div>
+    </div>
+    <div id="subjectsBox" class="grid-4"></div>
+  </section>
+
+  <section id="elonlar" class="sec">
+    <div class="sec-head">
+      <div class="sec-title-wrap">
+        <div class="badge-ico" style="background:linear-gradient(135deg,#F59E0B,#EA580C)">!</div>
+        <div>
+          <h2 class="sec-title">Eʼlonlar va yangiliklar</h2>
+          <p class="sec-sub">Qabul, ochiq darslar va muhim xabarnomalar.</p>
+        </div>
+      </div>
+    </div>
+    <div id="annBox" class="grid-2"></div>
+  </section>
+
+  <section id="darsliklar" class="sec">
+    <div class="sec-head">
+      <div class="sec-title-wrap">
+        <div class="badge-ico" style="background:linear-gradient(135deg,#10B981,#0D9488)">☰</div>
+        <div>
+          <h2 class="sec-title">Darsliklar va testlar</h2>
+          <p class="sec-sub">Ikki tomonlama sahifalash va filtrlar bilan tez qidiruv.</p>
+        </div>
+      </div>
+      <div class="filters">
+        <select id="fSubject" onchange="resetAndLoad()" aria-label="Fan bo'yicha filtr" class="inp"></select>
+        <select id="fLevel" onchange="resetAndLoad()" aria-label="Sinf bo'yicha filtr" class="inp">
+          <option value="all">Barcha sinflar</option>
+          <option value="5–6-sinf">5–6-sinf</option>
+          <option value="7–8-sinf">7–8-sinf</option>
+          <option value="9–11-sinf">9–11-sinf</option>
+        </select>
+        <select id="fType" onchange="resetAndLoad()" aria-label="Dars turi bo'yicha filtr" class="inp">
+          <option value="all">Barcha turlar</option>
+          <option value="video">Video dars</option>
+          <option value="pdf">Qoʻllanma</option>
+          <option value="test">Test</option>
+          <option value="interaktiv">Mashq</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="lessonsBox" class="grid-3"></div>
+    <p id="emptyLessons" class="hidden muted" style="text-align:center;padding:24px 0"></p>
+
+    <div class="pager">
+      <button id="prevPageBtn" type="button" onclick="prevPage()" class="btn btn-glass">← Oldingi sahifa</button>
+      <span id="pageInfo" class="muted" style="font-weight:700">1-sahifa</span>
+      <button id="nextPageBtn" type="button" onclick="nextPage()" class="btn btn-grad">Keyingi sahifa →</button>
+    </div>
+  </section>
+
+  <section id="jadval" class="sec">
+    <div class="sec-head">
+      <div class="sec-title-wrap">
+        <div class="badge-ico" style="background:linear-gradient(135deg,#7C3AED,#EC4899)">◷</div>
+        <div>
+          <h2 class="sec-title">Guruhlar va dars jadvali</h2>
+          <p class="sec-sub">Haftalik mashgʻulot kunlari va vaqti.</p>
+        </div>
+      </div>
+    </div>
+    <div id="scheduleBox" class="grid-3"></div>
+  </section>
+
+  <section id="ustozlar" class="sec">
+    <div class="sec-head">
+      <div class="sec-title-wrap">
+        <div class="badge-ico" style="background:linear-gradient(135deg,#0EA5E9,#2563EB)">☺</div>
+        <div>
+          <h2 class="sec-title">Ustozlar jamoasi</h2>
+          <p class="sec-sub">Har bir yoʻnalish boʻyicha tajribali murabbiylar.</p>
+        </div>
+      </div>
+    </div>
+    <div id="teachersBox" class="grid-3"></div>
+  </section>
+
+  <section id="yozilish" class="sec" style="padding-bottom:56px">
+    <form id="enrollForm" class="card grid-2">
+      <div style="grid-column:1/-1" class="sec-title-wrap">
+        <div class="badge-ico" style="background:linear-gradient(135deg,#10B981,#2563EB)">+</div>
+        <div>
+          <h2 class="sec-title">Kursga yozilish</h2>
+          <p class="sec-sub">Maʼlumotlaringizni qoldiring, markaz maʼmuriyati bogʻlanadi.</p>
+        </div>
+      </div>
+      <label class="muted" style="color:var(--txt);font-weight:600">Ism-familiya *<input id="enName" required class="inp" style="margin-top:6px"></label>
+      <label class="muted" style="color:var(--txt);font-weight:600">Telefon yoki @username *<input id="enContact" required class="inp" style="margin-top:6px"></label>
+      <label class="muted" style="color:var(--txt);font-weight:600">Fan<select id="enSub" class="inp" style="margin-top:6px"></select></label>
+      <label class="muted" style="color:var(--txt);font-weight:600">Sinf / daraja<input id="enLevel" class="inp" placeholder="Masalan: 8-sinf" style="margin-top:6px"></label>
+      <label class="muted" style="color:var(--txt);font-weight:600;grid-column:1/-1">Izoh<textarea id="enNote" rows="2" class="inp" style="margin-top:6px"></textarea></label>
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button type="submit" class="btn btn-mint">➤ Ariza yuborish</button>
+        <span id="enStatus" style="font-size:13px;font-weight:700;color:var(--acc)"></span>
+      </div>
+    </form>
+  </section>
+</main>
+
+<!-- Yon oynalar drawer -->
+<div id="workspaceDrawer" role="dialog" aria-modal="true" aria-label="Yon oynalar" class="drawer-wrap hidden no-print" onclick="if(event.target===this)closeWorkspaceDrawer()">
+  <div class="drawer-panel">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <h3 style="margin:0;font-size:18px;font-weight:800">Studiyaning yon oynalari</h3>
+        <button type="button" onclick="closeWorkspaceDrawer()" class="btn btn-glass">✕</button>
+      </div>
+      <div class="grid-2">
+        <a href="#fanlar" onclick="closeWorkspaceDrawer()" class="card"><b>Fanlar oynasi</b><div class="muted">Yoʻnalishlar</div></a>
+        <a href="#darsliklar" onclick="closeWorkspaceDrawer()" class="card"><b>Darsliklar oynasi</b><div class="muted">Dars va testlar</div></a>
+        <a href="#jadval" onclick="closeWorkspaceDrawer()" class="card"><b>Jadval oynasi</b><div class="muted">Guruh vaqtlari</div></a>
+        <button type="button" onclick="closeWorkspaceDrawer();openCertificateModal()" class="card" style="text-align:left"><b>Sertifikat oynasi</b><div class="muted">Natija varaqasi</div></button>
+      </div>
+    </div>
+    <a href="admin.html" class="btn btn-grad" style="width:100%;margin-top:20px">Oʻqituvchi / Admin kabineti →</a>
+  </div>
+</div>
+
+<!-- Dars modal -->
+<div id="lessonModal" role="dialog" aria-modal="true" aria-labelledby="mTitle" class="overlay hidden no-print" onclick="if(event.target===this)closeLesson()">
+  <article class="modal-box">
+    <button type="button" onclick="closeLesson()" aria-label="Dars oynasini yopish" class="close-x">✕</button>
+    <span id="mSubBadge" class="tag"></span>
+    <h3 id="mTitle" style="margin:8px 0 4px;font-size:24px;font-weight:900"></h3>
+    <p id="mMeta" class="muted" style="margin:0"></p>
+    <div id="mVideo" class="video-box"></div>
+    <div id="mContent" style="font-size:15px"></div>
+
+    <div id="mHwBox" class="hw-box hidden">
+      <div style="font-weight:800;font-size:14px;margin-bottom:6px">📋 Uy vazizifasi</div>
+      <p id="mHwTask" style="margin:0 0 10px;font-size:14px"></p>
+      <textarea id="hwAnswer" rows="2" class="inp" placeholder="Bajarilgan vazifa matni yoki havolani yozing..."></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+        <button type="button" onclick="submitHomework()" class="btn btn-grad">Topshirish</button>
+        <span id="hwMsg" style="font-size:12px;font-weight:700;color:var(--acc)"></span>
+      </div>
+    </div>
+
+    <div id="mQuizBox" class="quiz-box hidden"></div>
+
+    <div class="btn-row">
+      <button id="mCompleteBtn" type="button" onclick="toggleComplete()" class="btn btn-mint">Darsni tugatdim</button>
+      <button type="button" onclick="closeLesson()" class="btn btn-glass">Yopish</button>
+    </div>
+  </article>
+</div>
+
+<!-- Sertifikat modal -->
+<div id="certModal" role="dialog" aria-modal="true" aria-label="Sertifikat oynasi" class="overlay hidden" onclick="if(event.target===this)$('certModal').classList.add('hidden')">
+  <div class="modal-box" style="max-width:520px;border-color:var(--pri)">
+    <button type="button" onclick="$('certModal').classList.add('hidden')" aria-label="Sertifikat oynasini yopish" class="close-x no-print">✕</button>
+    <div class="tag">OʻQUV NATIJA VARAQASI</div>
+    <h3 style="margin:6px 0 12px;font-size:22px;font-weight:900">Bilim Markazi</h3>
+    <label class="no-print muted" style="display:block;color:var(--txt);font-weight:600;margin-bottom:12px">Oʻquvchi ismi
+      <input id="certStudentName" class="inp" placeholder="Ism-familiyangizni kiriting" oninput="localStorage.setItem('student_name',this.value);renderCert()" style="margin-top:6px">
+    </label>
+    <div id="certBody" class="card" style="padding:14px;margin-bottom:14px;font-size:14px"></div>
+    <button type="button" onclick="window.print()" class="btn btn-grad no-print" style="width:100%">Chop etish / PDF saqlash</button>
+  </div>
+</div>
+
+<div id="toast" class="toast no-print" style="opacity:0;pointer-events:none"></div>
+
+<script>
+const SUPABASE_URL = localStorage.getItem("sb_url") || "";
+const SUPABASE_ANON_KEY = localStorage.getItem("sb_key") || "";
+const db = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && typeof window.supabase.createClient === "function")
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const ls = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (_) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+
+const SAMPLE = {
+  subjects: [
+    { id:"s1", name:"Informatika", icon:"💻", description:"Algoritm, kompyuter tuzilishi va dasturlash." },
+    { id:"s2", name:"Matematika", icon:"📐", description:"Algebra, geometriya va mantiqiy masalalar." },
+    { id:"s3", name:"Ingliz tili", icon:"🌍", description:"Grammatika, lugʻat va muloqot koʻnikmalari." },
+    { id:"s4", name:"Fizika", icon:"⚛️", description:"Mexanika, elektr va amaliy tajribalar." }
+  ],
+  teachers: [
+    { id:"t1", full_name:"Lochinbek Oʻktamov", bio:"Informatika va dasturlash ustozi.", contact:"https://t.me/username" },
+    { id:"t2", full_name:"Madina Karimova", bio:"Matematika va mantiq murabbiysi.", contact:"" }
+  ],
+  schedules: [
+    { id:"sc1", group_name:"INF-1", subject_id:"s1", days_text:"Du – Cho – Ju", time_text:"15:00 – 16:30" },
+    { id:"sc2", group_name:"MAT-2", subject_id:"s2", days_text:"Se – Pay – Sha", time_text:"16:30 – 18:00" }
+  ],
+  announcements: [
+    { id:"a1", category:"Muhim", title:"Yangi guruhlarga qabul davom etmoqda", body:"Dars jadvali boʻlimidan vaqtni tanlab, ariza qoldiring.", pinned:true },
+    { id:"a2", category:"Yangilik", title:"Ochiq dars va sinov testlari", body:"Har hafta yakshanba kuni bepul mashgʻulot oʻtkaziladi.", pinned:false }
+  ],
+  lessons: [
+    { id:"l1", subject_id:"s1", teacher_id:"t1", lesson_type:"video", title:"Kompyuter arxitekturasi asoslari", topic:"Kompyuter asoslari", level:"7–8-sinf", duration_min:15, video_url:"", homework:"Kompyuterning 4 asosiy vazifasini misollar bilan yozing.", content:["Protsessor, operativ xotira va saqlash qurilmalari oʻzaro bogʻliq ishlaydi."], quiz:[{ q:"RAM nima vazifani bajaradi?", opts:["Doimiy arxiv","Vaqtinchalik tezkor xotira","Printer drayveri","Tarmoq kabeli"], ans:1, tip:"RAM ishlayotgan dasturlar maʼlumotini vaqtinchalik saqlaydi." }], created_at:"2026-01-02T00:00:00Z" },
+    { id:"l2", subject_id:"s2", teacher_id:"t2", lesson_type:"test", title:"Chiziqli tenglamalar va mantiq", topic:"Algebra", level:"7–8-sinf", duration_min:20, video_url:"", homework:"5 ta chiziqli tenglamani yechib, tekshiring.", content:["Nomaʼlum qiymatni topishda tenglamaning ikkala tomoniga bir xil amal qoʻllaniladi."], quiz:[{ q:"2x + 6 = 14 boʻlsa, x nechaga teng?", opts:["2","4","6","8"], ans:1, tip:"2x = 8 -> x = 4." }], created_at:"2026-01-01T00:00:00Z" }
+  ]
+};
+
+const PAGE_SIZE = 12;
+let state = { subjectId:"all", level:"all", type:"all", query:"", page:1, cursorStack:[null], hasMore:false, totalCount:0, currentLesson:null, deferredPrompt:null };
+let doneIds = new Set(ls("done_lessons", []));
+let subjects = [], teachers = [], schedules = [], announcements = [], lessons = [];
+
+function toast(msg){
+  const e = $("toast");
+  if(!e) return;
+  e.textContent = msg;
+  e.style.opacity = "1";
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { e.style.opacity = "0"; }, 2800);
+}
+const subjName = id => (subjects.find(s => String(s.id) === String(id)) || {}).name || "Fan";
+const teacherName = id => (teachers.find(t => String(t.id) === String(id)) || {}).full_name || "Ustoz";
+
+function openWorkspaceDrawer(){ $("workspaceDrawer").classList.remove("hidden"); }
+function closeWorkspaceDrawer(){ $("workspaceDrawer").classList.add("hidden"); }
+function closeLesson(){ $("lessonModal").classList.add("hidden"); state.currentLesson = null; }
+
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape"){ closeLesson(); closeWorkspaceDrawer(); $("certModal").classList.add("hidden"); }
+});
+
+function switchMiniTab(name){
+  const map = { progress:"Progress", notes:"Notes", focus:"Focus" };
+  ["progress","notes","focus"].forEach(k => {
+    const suf = map[k];
+    $("miniPanel"+suf).classList.toggle("hidden", k !== name);
+    const btn = $("wTab"+suf);
+    btn.className = "btn " + (k === name ? "btn-grad" : "btn-glass");
+  });
+}
+
+let focusSec = 25 * 60, focusTimer = null;
+function renderFocus(){ $("focusClock").textContent = `${String(Math.floor(focusSec/60)).padStart(2,"0")}:${String(focusSec%60).padStart(2,"0")}`; }
+function startFocus(){ if(focusTimer) return; focusTimer = setInterval(() => { if(focusSec>0){ focusSec--; renderFocus(); } else { pauseFocus(); toast("Fokus vaqti yakunlandi!"); } }, 1000); }
+function pauseFocus(){ clearInterval(focusTimer); focusTimer = null; }
+function resetFocus(){ pauseFocus(); focusSec = 25*60; renderFocus(); }
+
+async function syncCloudProgress(){
+  if(!db) return;
+  try {
+    const { data:{ user } } = await db.auth.getUser();
+    if(!user){ $("syncStatusBadge").textContent = "● Supabase (mehmon)"; return; }
+    const { data, error } = await db.from("lesson_progress").select("lesson_id").eq("student_id", user.id).eq("completed", true);
+    if(error){ toast("Progress sinxronlashda xato: " + error.message); return; }
+    if(data){
+      data.forEach(r => doneIds.add(String(r.lesson_id)));
+      lsSet("done_lessons", [...doneIds]);
+      $("syncStatusBadge").textContent = "● Bulutga ulangan";
+      renderStats();
+    }
+  } catch (err) {
+    toast("Bulut bilan aloqada xato: " + (err.message || err));
+  }
+}
+
+async function boot(){
+  $("quickNoteArea").value = localStorage.getItem("quick_study_note") || "";
+  switchMiniTab("progress");
+  subjects = SAMPLE.subjects;
+  teachers = SAMPLE.teachers;
+  schedules = SAMPLE.schedules;
+  announcements = SAMPLE.announcements;
+  $("syncStatusBadge").textContent = db ? "● Supabase tayyor" : "● Mahalliy rejim";
+
+  if(db){
+    try {
+      const [subRes, teaRes, schRes, annRes] = await Promise.all([
+        db.from("subjects").select("*").order("sort_order", { ascending:true }),
+        db.from("profiles").select("id,full_name,bio,contact").in("role", ["teacher", "admin"]),
+        db.from("schedules").select("*").order("created_at", { ascending:false }),
+        db.from("announcements").select("*").order("pinned", { ascending:false }).order("created_at", { ascending:false }).limit(8)
+      ]);
+      if(subRes.data?.length) subjects = subRes.data;
+      if(teaRes.data?.length) teachers = teaRes.data;
+      if(schRes.data?.length) schedules = schRes.data;
+      if(annRes.data?.length) announcements = annRes.data;
+      await syncCloudProgress();
+    } catch (err) {
+      toast("Baza ma'lumotlari yuklanmadi, namuna ko‘rsatilmoqda.");
+    }
+  }
+
+  renderSubjects();
+  renderAnnouncements();
+  renderSchedule();
+  renderTeachers();
+  await resetAndLoad();
+}
+
+function renderSubjects(){
+  $("subjectsBox").innerHTML = subjects.map(s => `
+    <button type="button" onclick="$('fSubject').value='${esc(s.id)}';resetAndLoad();$('darsliklar').scrollIntoView()" class="card" style="text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge-ico">${esc(s.icon||'📘')}</span>
+        <span class="tag">Ochish →</span>
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:16px">${esc(s.name)}</div>
+        <div class="muted" style="margin-top:4px">${esc(s.description||'')}</div>
+      </div>
+    </button>`).join("");
+
+  const opts = `<option value="all">Barcha fanlar</option>` + subjects.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+  $("fSubject").innerHTML = opts;
+  $("enSub").innerHTML = subjects.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+}
+
+function renderAnnouncements(){
+  $("annBox").innerHTML = announcements.map(a => `
+    <article class="card">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="tag">${esc(a.category||'Eʼlon')}</span>
+        ${a.pinned ? '<span class="tag" style="background:rgba(245,158,11,.16);color:#d97706">📌 Qadalgan</span>' : ''}
+      </div>
+      <h3 style="margin:10px 0 6px;font-size:18px;font-weight:800">${esc(a.title)}</h3>
+      <p class="muted" style="margin:0">${esc(a.body)}</p>
+    </article>`).join("");
+}
+
+function renderSchedule(){
+  $("scheduleBox").innerHTML = schedules.map(g => `
+    <div class="card">
+      <span class="tag">${esc(subjName(g.subject_id))}</span>
+      <h3 style="margin:8px 0 4px;font-size:18px;font-weight:800">${esc(g.group_name)}</h3>
+      <p class="muted" style="margin:2px 0">📅 ${esc(g.days_text)}</p>
+      <p style="margin:4px 0 0;font-size:13px;font-weight:800;color:var(--acc)">🕒 ${esc(g.time_text)}</p>
+    </div>`).join("");
+}
+
+function renderTeachers(){
+  $("teachersBox").innerHTML = teachers.map(t => `
+    <div class="card">
+      <h3 style="margin:0 0 6px;font-size:18px;font-weight:800">${esc(t.full_name)}</h3>
+      <p class="muted" style="margin:0">${esc(t.bio||'')}</p>
+      ${t.contact ? `<a href="${esc(t.contact)}" target="_blank" rel="noopener noreferrer" class="btn btn-glass" style="margin-top:12px">Bogʻlanish →</a>` : ''}
+    </div>`).join("");
+}
+
+async function resetAndLoad(){
+  state.subjectId = $("fSubject").value;
+  state.level = $("fLevel").value;
+  state.type = $("fType").value;
+  state.page = 1;
+  state.cursorStack = [null];
+  await loadPageWithCursor(null);
+}
+
+async function nextPage(){
+  if(!state.hasMore || !lessons.length) return;
+  const cursor = lessons[lessons.length - 1].created_at;
+  state.page += 1;
+  state.cursorStack.push(cursor);
+  await loadPageWithCursor(cursor);
+}
+
+async function prevPage(){
+  if(state.page <= 1 || state.cursorStack.length <= 1) return;
+  state.cursorStack.pop();
+  state.page -= 1;
+  await loadPageWithCursor(state.cursorStack[state.cursorStack.length - 1]);
+}
+
+async function loadPageWithCursor(cursor){
+  let loadedFromDb = false;
+  if(db){
+    try {
+      let q = db.from("lessons").select("*", { count:"exact" }).eq("is_published", true).order("created_at", { ascending:false }).limit(PAGE_SIZE + 1);
+      if(cursor) q = q.lt("created_at", cursor);
+      if(state.subjectId !== "all") q = q.eq("subject_id", state.subjectId);
+      if(state.level !== "all") q = q.eq("level", state.level);
+      if(state.type !== "all") q = q.eq("lesson_type", state.type);
+      if(state.query.trim()) q = q.ilike("title", `%${state.query.trim()}%`);
+      const { data, count, error } = await q;
+      if(!error){
+        const rows = data || [];
+        state.hasMore = rows.length > PAGE_SIZE;
+        lessons = state.hasMore ? rows.slice(0, PAGE_SIZE) : rows;
+        state.totalCount = count ?? lessons.length;
+        loadedFromDb = true;
+      }
+    } catch (_) {}
+  }
+
+  if(!loadedFromDb){
+    const q = state.query.trim().toLowerCase();
+    const filtered = SAMPLE.lessons.filter(l =>
+      (state.subjectId==="all" || String(l.subject_id)===String(state.subjectId)) &&
+      (state.level==="all" || l.level===state.level) &&
+      (state.type==="all" || l.lesson_type===state.type) &&
+      (!q || (l.title+" "+(l.topic||"")).toLowerCase().includes(q))
+    );
+    state.totalCount = filtered.length;
+    state.hasMore = false;
+    lessons = filtered.slice(0, PAGE_SIZE);
+  }
+
+  $("emptyLessons").classList.toggle("hidden", lessons.length > 0);
+  $("emptyLessons").textContent = "Tanlangan filtr boʻyicha dars topilmadi.";
+  $("lessonsBox").innerHTML = lessons.map(l => `
+    <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;gap:14px">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span class="tag">${esc(subjName(l.subject_id))}</span>
+          <span class="muted">${esc(l.level||'')} · ${l.duration_min||15} daq</span>
+        </div>
+        <h3 style="margin:10px 0 4px;font-size:18px;font-weight:800">${esc(l.title)}</h3>
+        <div class="muted">Ustoz: ${esc(teacherName(l.teacher_id))}</div>
+        <p class="muted" style="margin:8px 0 0">${esc(l.summary||(l.content?.[0]||''))}</p>
+      </div>
+      <button type="button" onclick="openLessonById('${esc(l.id)}')" class="btn ${doneIds.has(String(l.id))?'btn-mint':'btn-grad'}" style="width:100%">
+        ${doneIds.has(String(l.id))?'Tugatilgan ✓ — Ochish':'Darsni ochish'}
+      </button>
+    </div>`).join("");
+
+  $("pageInfo").textContent = `${state.page}-sahifa · Jami ${state.totalCount} ta dars`;
+  $("prevPageBtn").disabled = state.page <= 1;
+  $("nextPageBtn").disabled = !state.hasMore;
+  renderStats();
+}
+
+function openLessonById(id){
+  const l = lessons.find(x => String(x.id) === String(id));
+  if(!l) return;
+  state.currentLesson = l;
+  $("mSubBadge").textContent = subjName(l.subject_id);
+  $("mTitle").textContent = l.title;
+  $("mMeta").textContent = `Ustoz: ${teacherName(l.teacher_id)} · ${l.level||''} · ${l.duration_min||15} daqiqa`;
+
+  const yt = (l.video_url||"").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  $("mVideo").innerHTML = yt
+    ? `<iframe src="https://www.youtube.com/embed/${yt[1]}" style="width:100%;height:100%;border:0" allowfullscreen loading="lazy"></iframe>`
+    : `<p class="muted" style="margin:0">Video biriktirilmagan yoki matnli dars</p>`;
+
+  $("mContent").innerHTML = (l.content||[]).map(p => `<p style="margin:0 0 8px">${esc(p)}</p>`).join("");
+  const hasHw = Boolean((l.homework||"").trim());
+  $("mHwBox").classList.toggle("hidden", !hasHw);
+  $("mHwTask").textContent = l.homework || "";
+  $("hwMsg").textContent = "";
+
+  const qList = Array.isArray(l.quiz) ? l.quiz : [];
+  $("mQuizBox").classList.toggle("hidden", !qList.length);
+  $("mQuizBox").innerHTML = qList.length ? `
+    <div style="font-weight:800;font-size:14px;margin-bottom:8px">Test savollari</div>
+    ${qList.map((q, i) => `
+      <div class="card" style="padding:12px;margin-bottom:8px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">${i+1}. ${esc(q.q)}</div>
+        ${(q.opts||[]).map((o, oi) => `<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:4px 0"><input type="radio" name="q_${i}" value="${oi}"> <span>${esc(o)}</span></label>`).join("")}
+        <div id="qTip_${i}" class="hidden muted" style="margin-top:6px"></div>
+      </div>`).join("")}
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+      <button type="button" onclick="gradeQuiz()" class="btn btn-grad">Testni tekshirish</button>
+      <span id="qResult" style="font-size:13px;font-weight:800"></span>
+    </div>` : "";
+
+  $("mCompleteBtn").textContent = doneIds.has(String(l.id)) ? "Tugatilgan ✓" : "Darsni tugatdim";
+  $("lessonModal").classList.remove("hidden");
+}
+
+function gradeQuiz(){
+  const l = state.currentLesson; if(!l?.quiz) return;
+  let ok = 0;
+  l.quiz.forEach((q, i) => {
+    const sel = document.querySelector(`input[name="q_${i}"]:checked`);
+    const right = sel && Number(sel.value) === Number(q.ans);
+    if(right) ok++;
+    const tip = $("qTip_"+i);
+    if(tip){ tip.classList.remove("hidden"); tip.textContent = (right ? "✓ Toʻgʻri. " : "✗ Xato. ") + (q.tip || ""); }
+  });
+  $("qResult").textContent = `Natija: ${ok} / ${l.quiz.length}`;
+  if(ok === l.quiz.length){ doneIds.add(String(l.id)); lsSet("done_lessons", [...doneIds]); renderStats(); }
+}
+
+async function submitHomework(){
+  const ans = $("hwAnswer").value.trim();
+  if(!ans){ toast("Javobni yozing"); return; }
+  if(db){
+    const { data:{ user } } = await db.auth.getUser();
+    if(!user){ $("hwMsg").textContent = "Bazaga yuborish uchun Kabinet orqali kiring."; return; }
+    const { error } = await db.from("homework_submissions").upsert({ lesson_id:state.currentLesson.id, student_id:user.id, answer_text:ans, status:"kutilmoqda" });
+    if(error){ $("hwMsg").textContent = "Xatolik: " + error.message; return; }
+  }
+  $("hwMsg").textContent = "Uy vazifasi topshirildi ✓";
+  $("hwAnswer").value = "";
+}
+
+async function toggleComplete(){
+  const l = state.currentLesson; if(!l) return;
+  const id = String(l.id);
+  const nextVal = !doneIds.has(id);
+  if(nextVal) doneIds.add(id); else doneIds.delete(id);
+  lsSet("done_lessons", [...doneIds]);
+  $("mCompleteBtn").textContent = nextVal ? "Tugatilgan ✓" : "Darsni tugatdim";
+  renderStats();
+  if(db){
+    const { data:{ user } } = await db.auth.getUser();
+    if(user){
+      const { error } = await db.from("lesson_progress").upsert({ student_id:user.id, lesson_id:l.id, completed:nextVal });
+      if(error) toast("Bulutga saqlashda xato: " + error.message);
+    }
+  }
+}
+
+function openCertificateModal(){
+  $("certStudentName").value = localStorage.getItem("student_name") || "";
+  renderCert();
+  $("certModal").classList.remove("hidden");
+}
+function renderCert(){
+  const name = $("certStudentName").value.trim() || "Oʻquvchi";
+  const total = Math.max(state.totalCount, doneIds.size, 1);
+  const pct = Math.min(100, Math.round((doneIds.size / total) * 100));
+  $("certBody").innerHTML = `<div><b>Oʻquvchi:</b> ${esc(name)}</div><div><b>Tugatilgan darslar:</b> ${doneIds.size} ta</div><div><b>Oʻzlashtirish:</b> ${pct}%</div>`;
+}
+
+function renderStats(){
+  const total = Math.max(state.totalCount, 1);
+  const pct = Math.min(100, Math.round((doneIds.size / total) * 100));
+  $("statText").textContent = `${doneIds.size} / ${state.totalCount} dars`;
+  $("statPct").textContent = `${pct}%`;
+  $("statBar").style.width = `${pct}%`;
+  $("cntSubjects").textContent = subjects.length;
+  $("cntLessons").textContent = state.totalCount;
+  $("cntDone").textContent = doneIds.size;
+}
+
+$("enrollForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const payload = { full_name:$("enName").value.trim(), contact:$("enContact").value.trim(), subject_id:$("enSub").value||null, level_text:$("enLevel").value.trim(), note:$("enNote").value.trim() };
+  if(db){
+    const { error } = await db.from("enrollments").insert(payload);
+    if(error){ $("enStatus").textContent = "Xatolik: " + error.message; return; }
+  }
+  e.target.reset();
+  $("enStatus").textContent = "Arizangiz qabul qilindi ✓";
+  toast("Ariza yuborildi");
+});
+
+let searchTimer = null;
+$("qInput").addEventListener("input", e => {
+  clearTimeout(searchTimer);
+  state.query = e.target.value;
+  searchTimer = setTimeout(() => resetAndLoad(), 300);
+});
+
+let th = localStorage.getItem("th") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+document.documentElement.classList.toggle("dark", th === "dark");
+$("themeBtn").onclick = () => { const d = document.documentElement.classList.toggle("dark"); localStorage.setItem("th", d ? "dark" : "light"); };
+
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); state.deferredPrompt = e; $("installBtn").classList.remove("hidden"); });
+$("installBtn").onclick = async () => { if(!state.deferredPrompt) return; state.deferredPrompt.prompt(); await state.deferredPrompt.userChoice; state.deferredPrompt = null; $("installBtn").classList.add("hidden"); };
+if("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+boot();
+</script>
+</body>
+</html>
