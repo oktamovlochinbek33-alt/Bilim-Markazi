@@ -72,6 +72,290 @@ code.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px
 </style>
 </head>
 <body>
+  <!-- KUCHAYTIRILGAN ADMIN XAVFSIZLIK TIZIMI (SHA-256 + BRUTEFORCE HIMOYA) -->
+<style>
+  /* Parol tasdiqlanmaguncha admin panelning asosiy tarkibini yashirib turish */
+  body.bm-locked > *:not(#bm-auth-screen):not(script):not(style) {
+    display: none !important;
+  }
+  #bm-auth-screen {
+    position: fixed; inset: 0; background: #020617; display: flex;
+    align-items: center; justify-content: center; z-index: 999999;
+    font-family: system-ui, -apple-system, sans-serif; padding: 16px;
+  }
+  .bm-card {
+    background: #0f172a; padding: 30px 24px; border-radius: 16px;
+    width: 100%; max-width: 370px; color: #f8fafc;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); border: 1px solid #1e293b;
+  }
+  .bm-card h3 { margin: 0 0 6px; font-size: 20px; text-align: center; }
+  .bm-card p { margin: 0 0 18px; font-size: 13px; color: #94a3b8; text-align: center; line-height: 1.4; }
+  .bm-field {
+    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155;
+    background: #1e293b; color: #fff; box-sizing: border-box; margin-bottom: 12px;
+    font-size: 14px; outline: none;
+  }
+  .bm-field:focus { border-color: #3b82f6; }
+  .bm-action-btn {
+    width: 100%; padding: 12px; border-radius: 8px; border: none;
+    background: #2563eb; color: #fff; font-weight: 600; font-size: 15px; cursor: pointer;
+  }
+  .bm-action-btn:disabled { background: #475569; cursor: not-allowed; }
+  .bm-alert { font-size: 13px; margin: 12px 0 0; text-align: center; display: none; }
+
+  /* Admin panel ichidagi Xavfsizlik bo'limi */
+  #bm-admin-security-panel {
+    max-width: 500px; margin: 24px auto; padding: 20px; background: #ffffff;
+    border: 1px solid #e2e8f0; border-radius: 12px; font-family: system-ui, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); color: #0f172a;
+  }
+  #bm-admin-security-panel h4 {
+    margin: 0 0 14px; font-size: 16px; display: flex;
+    align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;
+  }
+  #bm-admin-security-panel label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+  #bm-admin-security-panel input {
+    width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+    margin-bottom: 12px; box-sizing: border-box; font-size: 14px;
+  }
+  .bm-btn-group { display: flex; gap: 10px; }
+  .bm-btn-save { flex: 1; padding: 10px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .bm-btn-lock { padding: 10px 16px; background: #dc2626; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+</style>
+
+<!-- 1. QULFLANGAN KIRISH VA BIRINCHI SOZLASH EKRANI -->
+<div id="bm-auth-screen">
+  <!-- Birinchi marta kirish: Yagona parol va email o'rnatish -->
+  <div id="bm-first-setup" class="bm-card" style="display:none;">
+    <h3>🛡️ Admin xavfsizligini o‘rnatish</h3>
+    <p>Tizimga birinchi marta kirmoqdasiz. Doimiy email va kamida 6 belgili kuchli parol o‘rnating.</p>
+    <input id="init-email" class="bm-field" type="email" placeholder="Admin email manzili">
+    <input id="init-pass1" class="bm-field" type="password" placeholder="Yangi parol (kamida 6 ta belgi)">
+    <input id="init-pass2" class="bm-field" type="password" placeholder="Parolni tasdiqlang">
+    <button class="bm-action-btn" onclick="registerMasterPassword()">Parolni o‘rnatish va kirish</button>
+    <p id="init-msg" class="bm-alert" style="color:#f87171;"></p>
+  </div>
+
+  <!-- Keyingi kirishlar: Faqat o'rnatilgan parol orqali kirish -->
+  <div id="bm-verify-login" class="bm-card" style="display:none;">
+    <h3>🔒 Himoyalangan Admin Panel</h3>
+    <p id="verify-subtitle">Kirish uchun o‘rnatilgan yagona parolni kiriting</p>
+    <input id="verify-pass" class="bm-field" type="password" placeholder="Maxfiy parol..."
+      onkeydown="if(event.key==='Enter') verifyMasterPassword()">
+    <button id="verify-btn" class="bm-action-btn" onclick="verifyMasterPassword()">Tizimga kirish</button>
+    <p id="verify-msg" class="bm-alert" style="color:#f87171;"></p>
+  </div>
+</div>
+
+<!-- 2. ADMIN PANEL ICHIDAGI KIRISH KODI VA EMAILNI O'ZGARTIRISH BO'LIMI -->
+<div id="bm-admin-security-panel">
+  <h4>
+    <span>🔐 Xavfsizlik: Kirish kodi va Email</span>
+    <button class="bm-btn-lock" onclick="lockAdminNow()">Chiqish</button>
+  </h4>
+  <label for="sec-email">Admin Email manzili</label>
+  <input id="sec-email" type="email" placeholder="Email manzilingiz">
+
+  <label for="sec-old-pass">Joriy parol (o‘zgartirishni tasdiqlash uchun majburiy)</label>
+  <input id="sec-old-pass" type="password" placeholder="Hozirgi parolingizni kiriting...">
+
+  <label for="sec-new-pass">Yangi parol (kamida 6 ta belgi, o‘zgartirmasangiz bo‘sh qoldiring)</label>
+  <input id="sec-new-pass" type="password" placeholder="Yangi maxfiy parol...">
+
+  <div class="bm-btn-group">
+    <button class="bm-btn-save" onclick="changeSecuritySettings()">Saqlash</button>
+  </div>
+  <p id="sec-status" style="font-size:13px; margin:10px 0 0; display:none;"></p>
+</div>
+
+<script>
+  (function() {
+    // Sahifa yuklanishi bilan darhol asosiy tarkibni qulflash
+    document.body.classList.add("bm-locked");
+
+    const VAULT_KEY = "bm_secure_vault_v2";
+    const SESSION_KEY = "bm_secure_unlocked_v2";
+    const LOCKOUT_KEY = "bm_lockout_until";
+    const ATTEMPTS_KEY = "bm_failed_attempts";
+    const SALT = "BilimMarkazi_2026_SecureSalt_#99";
+
+    // SHA-256 xesh funksiyasi (parol ochiq matnda saqlanmaydi)
+    async function hashPassword(plainText) {
+      const data = new TextEncoder().encode(SALT + plainText);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function unlockUI(email) {
+      document.body.classList.remove("bm-locked");
+      document.getElementById("bm-auth-screen").style.display = "none";
+      document.getElementById("sec-email").value = email || "";
+    }
+
+    function checkLockout() {
+      const until = parseInt(localStorage.getItem(LOCKOUT_KEY) || "0", 10);
+      const now = Date.now();
+      const msg = document.getElementById("verify-msg");
+      const btn = document.getElementById("verify-btn");
+      if (until > now) {
+        const sec = Math.ceil((until - now) / 1000);
+        msg.textContent = `⛔ Juda ko‘p xato urinish! ${sec} soniyadan keyin qayta urining.`;
+        msg.style.display = "block";
+        btn.disabled = true;
+        return true;
+      }
+      btn.disabled = false;
+      return false;
+    }
+
+    function bootSecurity() {
+      const vault = JSON.parse(localStorage.getItem(VAULT_KEY) || "null");
+      const screen = document.getElementById("bm-auth-screen");
+      const firstSetup = document.getElementById("bm-first-setup");
+      const verifyLogin = document.getElementById("bm-verify-login");
+
+      if (!vault || !vault.hash) {
+        // Hali parol o'rnatilmagan -> birinchi marta o'rnatish
+        document.body.classList.add("bm-locked");
+        screen.style.display = "flex";
+        firstSetup.style.display = "block";
+        verifyLogin.style.display = "none";
+      } else if (sessionStorage.getItem(SESSION_KEY) === vault.hash) {
+        // Joriy sessiyada parol tasdiqlangan
+        unlockUI(vault.email);
+      } else {
+        // Parol o'rnatilgan -> kirish oynasini ko'rsatish
+        document.body.classList.add("bm-locked");
+        screen.style.display = "flex";
+        firstSetup.style.display = "none";
+        verifyLogin.style.display = "block";
+        if (vault.email) {
+          document.getElementById("verify-subtitle").textContent = "Admin: " + vault.email;
+        }
+        checkLockout();
+      }
+    }
+
+    // 1. Birinchi marta yagona parolni o'rnatish
+    window.registerMasterPassword = async function() {
+      const email = document.getElementById("init-email").value.trim();
+      const p1 = document.getElementById("init-pass1").value.trim();
+      const p2 = document.getElementById("init-pass2").value.trim();
+      const msg = document.getElementById("init-msg");
+
+      if (!email || !email.includes("@")) {
+        msg.textContent = "❌ To‘g‘ri email manzilini kiriting.";
+        msg.style.display = "block";
+        return;
+      }
+      if (p1.length < 6) {
+        msg.textContent = "❌ Xavfsizlik uchun parol kamida 6 ta belgidan iborat bo‘lsin.";
+        msg.style.display = "block";
+        return;
+      }
+      if (p1 !== p2) {
+        msg.textContent = "❌ Kiritilgan parollar bir xil emas.";
+        msg.style.display = "block";
+        return;
+      }
+
+      const hash = await hashPassword(p1);
+      localStorage.setItem(VAULT_KEY, JSON.stringify({ email: email, hash: hash }));
+      sessionStorage.setItem(SESSION_KEY, hash);
+      unlockUI(email);
+    };
+
+    // 2. Keyingi kirishlarda parolni tekshirish
+    window.verifyMasterPassword = async function() {
+      if (checkLockout()) return;
+
+      const vault = JSON.parse(localStorage.getItem(VAULT_KEY) || "null");
+      if (!vault) return;
+
+      const input = document.getElementById("verify-pass").value.trim();
+      const msg = document.getElementById("verify-msg");
+      const inputHash = await hashPassword(input);
+
+      if (inputHash === vault.hash) {
+        localStorage.removeItem(ATTEMPTS_KEY);
+        localStorage.removeItem(LOCKOUT_KEY);
+        sessionStorage.setItem(SESSION_KEY, vault.hash);
+        document.getElementById("verify-pass").value = "";
+        msg.style.display = "none";
+        unlockUI(vault.email);
+      } else {
+        let fails = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0", 10) + 1;
+        localStorage.setItem(ATTEMPTS_KEY, String(fails));
+        if (fails >= 5) {
+          localStorage.setItem(LOCKOUT_KEY, String(Date.now() + 60000)); // 60 soniya blok
+          localStorage.setItem(ATTEMPTS_KEY, "0");
+          checkLockout();
+        } else {
+          msg.textContent = `❌ Parol noto‘g‘ri! Qolgan urinishlar: ${5 - fails} ta`;
+          msg.style.display = "block";
+        }
+      }
+    };
+
+    // 3. Admin panel ichidan email va parolni yangilash (eski parolni so'ragan holda)
+    window.changeSecuritySettings = async function() {
+      const vault = JSON.parse(localStorage.getItem(VAULT_KEY) || "null");
+      if (!vault) return;
+
+      const newEmail = document.getElementById("sec-email").value.trim();
+      const oldPass = document.getElementById("sec-old-pass").value.trim();
+      const newPass = document.getElementById("sec-new-pass").value.trim();
+      const status = document.getElementById("sec-status");
+
+      if (!oldPass) {
+        status.style.color = "#dc2626";
+        status.textContent = "❌ O‘zgarishlarni tasdiqlash uchun joriy parolni kiriting.";
+        status.style.display = "block";
+        return;
+      }
+
+      const oldHash = await hashPassword(oldPass);
+      if (oldHash !== vault.hash) {
+        status.style.color = "#dc2626";
+        status.textContent = "❌ Joriy parol noto‘g‘ri kiritildi!";
+        status.style.display = "block";
+        return;
+      }
+
+      if (!newEmail || !newEmail.includes("@")) {
+        status.style.color = "#dc2626";
+        status.textContent = "❌ Email manzili noto‘g‘ri.";
+        status.style.display = "block";
+        return;
+      }
+
+      if (newPass && newPass.length < 6) {
+        status.style.color = "#dc2626";
+        status.textContent = "❌ Yangi parol kamida 6 ta belgi bo‘lishi kerak.";
+        status.style.display = "block";
+        return;
+      }
+
+      const updatedHash = newPass ? await hashPassword(newPass) : vault.hash;
+      localStorage.setItem(VAULT_KEY, JSON.stringify({ email: newEmail, hash: updatedHash }));
+      sessionStorage.setItem(SESSION_KEY, updatedHash);
+
+      document.getElementById("sec-old-pass").value = "";
+      document.getElementById("sec-new-pass").value = "";
+      status.style.color = "#16a34a";
+      status.textContent = "✅ Email va parol xavfsiz tarzda yangilandi!";
+      status.style.display = "block";
+    };
+
+    // 4. Panelni darhol qulflash
+    window.lockAdminNow = function() {
+      sessionStorage.removeItem(SESSION_KEY);
+      bootSecurity();
+    };
+
+    bootSecurity();
+  })();
+</script>
 <div id="authView" class="auth-wrap">
   <div class="card" style="width:100%;max-width:450px">
     <form id="authForm">
